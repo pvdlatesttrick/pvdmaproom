@@ -1,0 +1,12 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_PATH=/data/app.db
+      # Optional: NYT_API_KEY=your_key_here
+      - NYT_API_KEY=${NYT_API_KEY:-}
+    volumes:
+      - ./data:/data
+
