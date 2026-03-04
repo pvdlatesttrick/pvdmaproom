@@ -514,6 +514,175 @@
         color: var(--live-text);
         font-weight: 500;
       }
+      .panel-focus-block {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--live-border);
+      }
+      .conflict-casualties-box {
+        margin: 8px 0;
+        padding: 10px 12px;
+        background: rgba(180, 60, 50, 0.15);
+        border-left: 3px solid #c44;
+        border-radius: 4px;
+        font-size: 0.85rem;
+      }
+      .conflict-casualties-content p { margin: 4px 0; }
+      .sports-leagues-list { margin: 8px 0; }
+      .sports-leagues-ul {
+        margin: 0;
+        padding-left: 1.2rem;
+        font-size: 0.9rem;
+        color: var(--live-text);
+      }
+      .sports-leagues-ul li { margin: 4px 0; }
+      .chat-toggle-btn {
+        margin-left: 8px;
+        padding: 4px 10px 4px 4px;
+        font-size: 0.85rem;
+        background: var(--live-panel);
+        border: 1px solid var(--live-border);
+        border-radius: 20px;
+        color: var(--live-text);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .chat-toggle-btn:hover {
+        background: var(--live-panel-hover);
+      }
+      .pvd-logo {
+        width: 28px;
+        height: 28px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        overflow: hidden;
+        background: #f0d8b8;
+      }
+      .pvd-logo svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .chat-panel-title .pvd-logo { width: 36px; height: 36px; margin-right: 8px; flex-shrink: 0; }
+      .chat-panel {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        width: 380px;
+        max-width: 100%;
+        max-height: 70vh;
+        background: var(--live-panel);
+        border: 1px solid var(--live-border);
+        border-radius: 12px 12px 0 0;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+        display: flex;
+        flex-direction: column;
+        z-index: 2000;
+        transform: translateY(100%);
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+      }
+      .chat-panel.open {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .chat-panel-header {
+        padding: 12px 14px 8px;
+        border-bottom: 1px solid var(--live-border);
+        position: relative;
+      }
+      .chat-panel-title { margin: 0 0 4px; font-size: 1rem; color: var(--live-text); display: flex; align-items: center; }
+      .chat-panel-desc {
+        margin: 0;
+        font-size: 0.72rem;
+        color: var(--live-muted);
+        line-height: 1.3;
+      }
+      .chat-close-btn {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        font-size: 1.2rem;
+        line-height: 1;
+        background: transparent;
+        border: none;
+        color: var(--live-muted);
+        cursor: pointer;
+        border-radius: 4px;
+      }
+      .chat-close-btn:hover { color: var(--live-text); background: rgba(255,255,255,0.08); }
+      .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px;
+        min-height: 120px;
+        max-height: 320px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .chat-msg {
+        padding: 10px 12px;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        line-height: 1.45;
+        max-width: 95%;
+      }
+      .chat-msg.user {
+        align-self: flex-end;
+        background: var(--live-accent);
+        color: #fff;
+      }
+      .chat-msg.assistant {
+        align-self: flex-start;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid var(--live-border);
+        color: var(--live-text);
+      }
+      .chat-msg.error {
+        align-self: flex-start;
+        background: rgba(180,60,50,0.2);
+        border: 1px solid #c44;
+        color: #e88;
+      }
+      .chat-input-wrap {
+        padding: 10px 12px 14px;
+        border-top: 1px solid var(--live-border);
+        display: flex;
+        gap: 8px;
+        align-items: flex-end;
+      }
+      .chat-input {
+        flex: 1;
+        min-height: 44px;
+        padding: 10px 12px;
+        font-size: 0.9rem;
+        font-family: inherit;
+        background: var(--live-bg);
+        border: 1px solid var(--live-border);
+        border-radius: 8px;
+        color: var(--live-text);
+        resize: none;
+      }
+      .chat-input::placeholder { color: var(--live-muted); }
+      .chat-send-btn {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+        background: var(--live-accent);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .chat-send-btn:hover { opacity: 0.9; }
+      .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
       .leaflet-control-fullscreen,
       .leaflet-control-locate {
         background: var(--live-panel) !important;
@@ -595,6 +764,7 @@
             <button class="map-tab" data-map-key="sports" type="button" role="menuitem">Sports</button>
           </div>
         </div>
+        <button id="chat-toggle-btn" class="chat-toggle-btn" type="button" title="Chat with PVD about the map"><span class="pvd-logo" aria-hidden="true"><svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="pvd-hair" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#f0e0a0"/><stop offset="100%" style="stop-color:#d4a84b"/></linearGradient></defs><circle cx="20" cy="22" r="12" fill="#f5d0b0"/><path d="M8 14 Q8 8 20 6 Q32 8 32 14 L32 20 Q32 24 20 26 Q8 24 8 20 Z" fill="url(#pvd-hair)"/><ellipse cx="16" cy="21" rx="2" ry="2.2" fill="#2c1810"/><ellipse cx="24" cy="21" rx="2" ry="2.2" fill="#2c1810"/><path d="M14 28 Q20 32 26 28" stroke="#c49070" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></span>PVD</button>
       </header>
       <div class="main-row">
         <div class="map-shell">
@@ -606,12 +776,35 @@
           </div>
         </div>
       </div>
+      <div id="chat-panel" class="chat-panel" aria-hidden="true">
+        <div class="chat-panel-header">
+          <h3 class="chat-panel-title"><span class="pvd-logo" aria-hidden="true"><svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="pvd-hair-panel" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#f0e0a0"/><stop offset="100%" style="stop-color:#d4a84b"/></linearGradient></defs><circle cx="20" cy="22" r="12" fill="#f5d0b0"/><path d="M8 14 Q8 8 20 6 Q32 8 32 14 L32 20 Q32 24 20 26 Q8 24 8 20 Z" fill="url(#pvd-hair-panel)"/><ellipse cx="16" cy="21" rx="2" ry="2.2" fill="#2c1810"/><ellipse cx="24" cy="21" rx="2" ry="2.2" fill="#2c1810"/><path d="M14 28 Q20 32 26 28" stroke="#c49070" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></span>PVD</h3>
+          <p class="chat-panel-desc">Ask PVD anything about the map. Answers use data from WSJ, The Economist, Hudson Institute, AEI, The Dispatch and other sources.</p>
+          <button id="chat-close-btn" class="chat-close-btn" type="button" aria-label="Close chat">×</button>
+        </div>
+        <div id="chat-messages" class="chat-messages" role="log"></div>
+        <div class="chat-input-wrap">
+          <textarea id="chat-input" class="chat-input" placeholder="Ask PVD about the map or current events…" rows="2"></textarea>
+          <button id="chat-send-btn" class="chat-send-btn" type="button">Send</button>
+        </div>
+      </div>
     </div>
     <aside id="country-side-panel" class="side-panel">
       <div class="side-panel-inner">
         <button id="country-close-btn" class="close-btn" type="button">Close</button>
         <h2 id="country-title">Country details</h2>
-        <div id="country-facts" class="fact-grid"></div>
+        <div id="country-conflict-casualties-wrap" class="panel-focus-block" style="display:none;">
+          <h3 class="section-title">Conflict &amp; military</h3>
+          <div id="country-conflict-casualties" class="conflict-casualties-box"></div>
+        </div>
+        <div id="country-sports-leagues-wrap" class="panel-focus-block" style="display:none;">
+          <h3 class="section-title">Top sports leagues</h3>
+          <div id="country-sports-leagues" class="sports-leagues-list"></div>
+        </div>
+        <div id="country-facts-wrap" class="panel-focus-block">
+          <h3 class="section-title" id="country-facts-heading">Key facts</h3>
+          <div id="country-facts" class="fact-grid"></div>
+        </div>
         <div id="country-ai-summary-section" class="ai-summary-section">
           <button id="country-ai-summary-btn" type="button" class="ai-summary-btn">AI summary</button>
           <div id="country-ai-summary-result" class="ai-summary-result" aria-live="polite"></div>
@@ -628,9 +821,9 @@
           <p class="graphic-detail-desc">Charts, maps and data on this country</p>
           <div id="graphic-detail-list" class="story-list"></div>
         </div>
-        <h3 class="section-title">Coverage from all sources</h3>
+        <h3 class="section-title" id="all-sources-heading">Coverage from all sources</h3>
         <div id="all-sources-list" class="story-list"></div>
-        <h3 class="section-title">Recent mapped updates</h3>
+        <h3 class="section-title" id="recent-updates-heading">Recent mapped updates</h3>
         <div id="country-story-list" class="story-list"></div>
       </div>
     </aside>
@@ -1298,7 +1491,7 @@
         if (typeof match.layer.getBounds === "function") {
           context.map.fitBounds(match.layer.getBounds(), { maxZoom: 5, padding: [18, 18] });
         }
-        openCountryPanel(match.countryName);
+        openCountryPanel(match.countryName, activeMapKey);
       }
 
       function storyCardHtml(story) {
@@ -1389,14 +1582,23 @@
         return data.summary || "";
       }
 
-      async function openCountryPanel(countryName) {
+      async function openCountryPanel(countryName, mapKey) {
+        mapKey = mapKey || activeMapKey;
         const sidePanel = document.getElementById("country-side-panel");
         const titleEl = document.getElementById("country-title");
         const factsEl = document.getElementById("country-facts");
+        const factsWrap = document.getElementById("country-facts-wrap");
+        const conflictCasualtiesWrap = document.getElementById("country-conflict-casualties-wrap");
+        const conflictCasualtiesEl = document.getElementById("country-conflict-casualties");
+        const sportsLeaguesWrap = document.getElementById("country-sports-leagues-wrap");
+        const sportsLeaguesEl = document.getElementById("country-sports-leagues");
+        const allSourcesHeading = document.getElementById("all-sources-heading");
+        const recentUpdatesHeading = document.getElementById("recent-updates-heading");
         const graphicDetailSection = document.getElementById("graphic-detail-section");
         const graphicDetailList = document.getElementById("graphic-detail-list");
         const allSourcesListEl = document.getElementById("all-sources-list");
         const storyListEl = document.getElementById("country-story-list");
+        const economistRankingsSection = document.getElementById("economist-rankings-section");
 
         const flagSpan = getCountryFlag(countryName)
           ? `<span class="country-flag" aria-hidden="true">${getCountryFlag(countryName)}</span> `
@@ -1404,6 +1606,10 @@
         titleEl.innerHTML = flagSpan;
         titleEl.append(countryName);
         factsEl.innerHTML = "Loading country details...";
+        if (conflictCasualtiesWrap) conflictCasualtiesWrap.style.display = "none";
+        if (conflictCasualtiesEl) conflictCasualtiesEl.innerHTML = "";
+        if (sportsLeaguesWrap) sportsLeaguesWrap.style.display = "none";
+        if (sportsLeaguesEl) sportsLeaguesEl.innerHTML = "";
         const aiSummaryResult = document.getElementById("country-ai-summary-result");
         if (aiSummaryResult) { aiSummaryResult.textContent = ""; aiSummaryResult.className = "ai-summary-result"; }
         if (graphicDetailSection) graphicDetailSection.style.display = "none";
@@ -1412,6 +1618,7 @@
         storyListEl.innerHTML = "";
         sidePanel.classList.add("open");
         sidePanel.dataset.currentCountry = "";
+        sidePanel.dataset.panelMapKey = mapKey || "";
 
         try {
           const response = await fetch(`/api/country?name=${encodeURIComponent(countryName)}`);
@@ -1474,9 +1681,51 @@
             : `<div class="muted">No source coverage matched this country yet.</div>`;
 
           const recentStories = payload.recent_stories || [];
-          storyListEl.innerHTML = recentStories.length
-            ? recentStories.map(storyCardHtml).join("")
-            : `<div class="muted">No recent mapped stories for this country yet.</div>`;
+          const aiSummarySection = document.getElementById("country-ai-summary-section");
+          if (mapKey === "conflicts") {
+            if (conflictCasualtiesWrap && payload.conflict_casualties) {
+              conflictCasualtiesWrap.style.display = "block";
+              const c = payload.conflict_casualties;
+              conflictCasualtiesEl.innerHTML = `<div class="conflict-casualties-content"><p><strong>Casualty estimates:</strong> ${c.estimate || "—"}</p><p class="muted">Source: ${c.source || "—"}${c.as_of ? ` (${c.as_of})` : ""}</p></div>`;
+            }
+            if (factsWrap) factsWrap.style.display = "none";
+            if (economistRankingsSection) economistRankingsSection.style.display = "none";
+            if (aiSummarySection) aiSummarySection.style.display = "none";
+            if (graphicDetailSection) graphicDetailSection.style.display = "none";
+            if (allSourcesHeading) allSourcesHeading.textContent = "Conflict & military news";
+            if (recentUpdatesHeading) recentUpdatesHeading.style.display = "none";
+            const conflictStories = allSourceStories.length ? allSourceStories.filter(isConflictStory) : recentStories.filter(isConflictStory);
+            storyListEl.innerHTML = conflictStories.length ? conflictStories.map(storyCardHtml).join("") : `<div class="muted">No conflict or military news for this country yet.</div>`;
+            allSourcesListEl.innerHTML = "";
+          } else if (mapKey === "economics") {
+            if (factsWrap) factsWrap.style.display = "block";
+            if (aiSummarySection) aiSummarySection.style.display = "block";
+            if (allSourcesHeading) allSourcesHeading.textContent = "Economic coverage";
+            if (recentUpdatesHeading) { recentUpdatesHeading.style.display = ""; recentUpdatesHeading.textContent = "Recent mapped updates"; }
+            allSourcesListEl.innerHTML = allSourceStories.length ? allSourceStories.map(storyCardHtml).join("") : `<div class="muted">No source coverage matched this country yet.</div>`;
+            storyListEl.innerHTML = recentStories.length ? recentStories.map(storyCardHtml).join("") : `<div class="muted">No recent mapped stories for this country yet.</div>`;
+          } else if (mapKey === "sports") {
+            if (sportsLeaguesWrap && (payload.top_sports_leagues || []).length > 0) {
+              sportsLeaguesWrap.style.display = "block";
+              sportsLeaguesEl.innerHTML = "<ul class=\"sports-leagues-ul\">" + payload.top_sports_leagues.map((l) => `<li>${l}</li>`).join("") + "</ul>";
+            }
+            if (factsWrap) factsWrap.style.display = "none";
+            if (economistRankingsSection) economistRankingsSection.style.display = "none";
+            if (aiSummarySection) aiSummarySection.style.display = "none";
+            if (graphicDetailSection) graphicDetailSection.style.display = "none";
+            if (allSourcesHeading) allSourcesHeading.textContent = "Sports coverage";
+            if (recentUpdatesHeading) recentUpdatesHeading.style.display = "none";
+            const sportsStories = allSourceStories.length ? allSourceStories.filter(isSportsStory) : recentStories.filter(isSportsStory);
+            storyListEl.innerHTML = sportsStories.length ? sportsStories.map(storyCardHtml).join("") : `<div class="muted">No sports coverage for this country yet.</div>`;
+            allSourcesListEl.innerHTML = "";
+          } else {
+            if (factsWrap) factsWrap.style.display = "block";
+            if (aiSummarySection) aiSummarySection.style.display = "block";
+            if (allSourcesHeading) allSourcesHeading.textContent = "Coverage from all sources";
+            if (recentUpdatesHeading) { recentUpdatesHeading.style.display = ""; recentUpdatesHeading.textContent = "Recent mapped updates"; }
+            allSourcesListEl.innerHTML = allSourceStories.length ? allSourceStories.map(storyCardHtml).join("") : `<div class="muted">No source coverage matched this country yet.</div>`;
+            storyListEl.innerHTML = recentStories.length ? recentStories.map(storyCardHtml).join("") : `<div class="muted">No recent mapped stories for this country yet.</div>`;
+          }
         } catch (error) {
           factsEl.innerHTML = "Failed to load country details.";
           console.error("Country panel load failed:", error);
@@ -1495,7 +1744,7 @@
             }
             layer.on("click", () => {
               setCountrySelection(context, layer);
-              openCountryPanel(countryName);
+              openCountryPanel(countryName, context.mapKey || activeMapKey);
             });
           }
         }).addTo(context.map);
@@ -1643,7 +1892,27 @@
             "Satellite": satellite,
             "Terrain": terrain
           };
-          L.control.layers(baseLayers, null, { position: "topright" }).addTo(m);
+          const overlays = {};
+          let iswLinesLayer = null;
+          if (mapKey === "conflicts") {
+            iswLinesLayer = L.layerGroup();
+            const iswLineStyle = { color: "#c44", weight: 4, dashArray: "10,8", opacity: 0.95 };
+            function addIswGeoJson(geojson) {
+              if (!geojson || !geojson.features || !iswLinesLayer) return;
+              L.geoJSON(geojson, {
+                style: iswLineStyle,
+                onEachFeature: function (feature, layer) {
+                  if (feature.properties && feature.properties.name) {
+                    layer.bindTooltip(feature.properties.name, { permanent: false, direction: "top" });
+                  }
+                }
+              }).addTo(iswLinesLayer);
+            }
+            fetch("/api/isw-frontlines").then((r) => r.ok ? r.json() : null).then(addIswGeoJson).catch(() => {});
+            iswLinesLayer.addTo(m);
+            overlays["ISW / Front lines"] = iswLinesLayer;
+          }
+          L.control.layers(baseLayers, Object.keys(overlays).length ? overlays : null, { position: "topright" }).addTo(m);
           L.control.scale({ imperial: true }).addTo(m);
 
           L.Control.Fullscreen = L.Control.extend({
@@ -1718,7 +1987,9 @@
             markerLayer: L.layerGroup().addTo(m),
             countryLayer: null,
             countryLayerIndex: {},
-            selectedCountryLayer: null
+            selectedCountryLayer: null,
+            mapKey: mapKey,
+            iswLinesLayer: iswLinesLayer || undefined
           };
         });
       }
@@ -1812,12 +2083,85 @@
         });
       }
 
+      function initChat() {
+        const chatPanel = document.getElementById("chat-panel");
+        const chatToggle = document.getElementById("chat-toggle-btn");
+        const chatClose = document.getElementById("chat-close-btn");
+        const chatMessages = document.getElementById("chat-messages");
+        const chatInput = document.getElementById("chat-input");
+        const chatSend = document.getElementById("chat-send-btn");
+        if (!chatPanel || !chatToggle || !chatMessages || !chatInput || !chatSend) return;
+
+        function openChat() {
+          chatPanel.classList.add("open");
+          chatPanel.setAttribute("aria-hidden", "false");
+        }
+        function closeChat() {
+          chatPanel.classList.remove("open");
+          chatPanel.setAttribute("aria-hidden", "true");
+        }
+
+        chatToggle.addEventListener("click", () => {
+          if (chatPanel.classList.contains("open")) closeChat(); else openChat();
+        });
+        chatClose.addEventListener("click", closeChat);
+
+        function appendMessage(role, text, isError) {
+          const div = document.createElement("div");
+          div.className = "chat-msg " + (role === "user" ? "user" : isError ? "error" : "assistant");
+          div.textContent = text;
+          if (role === "assistant" && !isError) div.style.whiteSpace = "pre-wrap";
+          chatMessages.appendChild(div);
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function sendMessage() {
+          const msg = (chatInput.value || "").trim();
+          if (!msg) return;
+          chatInput.value = "";
+          chatSend.disabled = true;
+          appendMessage("user", msg);
+          const sidePanel = document.getElementById("country-side-panel");
+          const country = (sidePanel && sidePanel.dataset.currentCountry) || null;
+          try {
+            const res = await fetch("/api/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                message: msg,
+                map_key: activeMapKey || undefined,
+                country: country || undefined
+              })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+              appendMessage("assistant", data.error || "Chat unavailable. Set OPENAI_API_KEY on the server.", true);
+              return;
+            }
+            if (data.reply) appendMessage("assistant", data.reply);
+          } catch (err) {
+            appendMessage("assistant", err.message || "Request failed.", true);
+          } finally {
+            chatSend.disabled = false;
+          }
+        }
+
+        chatSend.addEventListener("click", sendMessage);
+        chatInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+          }
+        });
+      }
+
       initMapContexts();
       enableDraggablePanel();
       loadCountryGeoJsonOnce().catch((error) => {
         console.error("Failed to load country borders:", error);
       });
       initMapsDropdown();
+      initChat();
       document.getElementById("country-search-btn").addEventListener("click", () => {
         const input = document.getElementById("country-search-input");
         searchAndOpenCountry(input.value);

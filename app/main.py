@@ -8,8 +8,10 @@ from pathlib import Path
 from flask import Flask, abort, jsonify, render_template, request, send_file
 
 from app.ai_summary import summarize_country, summarize_story
+from app.chat import chat as chat_reply
 from app.db import get_country_detail, get_stories, init_db
 from app.ingest import run_ingest
+from app.isw_frontlines import ISW_FRONTLINES_GEOJSON
 
 SOURCE_LOGO_FILES = {
     # User-provided logo assets.
@@ -56,6 +58,33 @@ def create_app() -> Flask:
         if not name:
             return jsonify({"error": "country name is required"}), 400
         return jsonify(get_country_detail(name))
+
+    @app.get("/api/isw-frontlines")
+    def api_isw_frontlines():
+        """Return GeoJSON for ISW-style front lines (Conflicts map overlay)."""
+        return jsonify(ISW_FRONTLINES_GEOJSON)
+
+    @app.post("/api/chat")
+    def api_chat():
+        """Answer a question using map articles and data; aligns with WSJ, Economist, Hudson, AEI, The Dispatch."""
+        data = request.get_json(silent=True) or {}
+        message = (data.get("message") or "").strip()
+        if not message:
+            return jsonify({"error": "message is required"}), 400
+        map_key = (data.get("map_key") or "").strip() or None
+        country = (data.get("country") or "").strip() or None
+        stories = get_stories(limit=250)
+        reply = chat_reply(
+            user_message=message,
+            stories=stories,
+            map_key=map_key,
+            country=country,
+        )
+        if reply is None:
+            return jsonify({
+                "error": "Chat unavailable. Set OPENAI_API_KEY in your deployment environment."
+            }), 503
+        return jsonify({"reply": reply})
 
     @app.get("/api/source-logo/<source_key>")
     def api_source_logo(source_key: str):

@@ -11,6 +11,7 @@ from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from app.factbook import normalize_country_name
+from app.conflict_data import CONFLICT_CASUALTIES, COUNTRY_TOP_LEAGUES
 
 # Sources considered more popular / widely read for ranking country-panel articles
 POPULAR_SOURCES = frozenset({
@@ -574,6 +575,8 @@ def get_country_detail(country_name: str) -> dict[str, Any]:
     if matched_fact:
         matched_fact.pop("cia_risk_rating", None)
     economist_rankings = get_rankings_for_country(normalized)
+    conflict_casualties = CONFLICT_CASUALTIES.get(normalized)
+    top_sports_leagues = COUNTRY_TOP_LEAGUES.get(normalized)
     return {
         "country_name": matched_fact.get("country_name") if matched_fact else country_name,
         "english_name": (label or {}).get("english_name", country_name),
@@ -584,5 +587,7 @@ def get_country_detail(country_name: str) -> dict[str, Any]:
         "all_source_stories": all_source_stories,
         "source_counts": source_counts,
         "recent_stories": recent_stories,
+        "conflict_casualties": conflict_casualties,
+        "top_sports_leagues": top_sports_leagues or [],
     }
 
