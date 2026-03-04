@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: pvdmaproom
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -b 0.0.0.0:$PORT "app.main:create_app()"
+    envVars:
+      - key: DB_PATH
+        value: /data/app.db
