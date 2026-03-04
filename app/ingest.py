@@ -182,7 +182,7 @@ SOURCE_DEFAULT_COUNTRY = {
     "nbc": "United States",
     "on3": "United States",
     "nbcsports": "United States",
-    "the_athletic": 
+        "the_athletic": "United States",
         "axios": "United States",
     "usa_today": "United States",
     "politico": "United States",
