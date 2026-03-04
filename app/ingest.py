@@ -161,6 +161,23 @@ SOURCE_DEFAULT_COUNTRY = {
     "gov_new_zealand_beehive": "New Zealand",
     "abc_news": "United States",
     "cnn": "United States",
+        "reuters": None,  # Global - no single default country
+    "ap_news": None,  # Global - Associated Press
+    "bbc": "United Kingdom",
+    "bbc_world": "United Kingdom",
+    "nyt": "United States",
+    "washingtonpost": "United States",
+    "wsj": "United States",
+    "economist": "United Kingdom",
+    "ft": "United Kingdom",  # Financial Times
+    "guardian": "United Kingdom",
+    "aljazeera": None,  # Pan-Middle East
+    "dw":" Germany",
+    "france24": "France",
+    "tass": "Russia",
+    "rt": "Russia",
+    "xinhua": "China",
+    "cgtn": "China",
     "nbc": "United States",
     "on3": "United States",
     "nbcsports": "United States",
@@ -457,7 +474,7 @@ def _resolve_story_location(
             return explicit_country, coords[0], coords[1], coords[2] or explicit_country
 
     # Keep geocoding bounded to avoid very slow ingest runs.
-    for candidate in _guess_place_candidates(story)[:2]:
+    
         coords = _geocode_place(geocoder, candidate)
         if coords is not None:
             return candidate, coords[0], coords[1], coords[2]
