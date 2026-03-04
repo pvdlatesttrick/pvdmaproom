@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import threading
 from pathlib import Path
 
 from flask import Flask, abort, jsonify, render_template, request, send_file
@@ -30,7 +31,7 @@ def create_app() -> Flask:
 
     # Ensure DB tables exist before first request.
     init_db()
-    run_ingest()
+    threading.Thread(target=run_ingest, daemon=True).start()
 
     @app.get("/")
     def index():
