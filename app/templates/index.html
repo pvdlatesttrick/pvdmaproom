@@ -11,56 +11,1618 @@
       crossorigin=""
     />
     <style>
+      :root {
+        --live-bg: #1a1a1a;
+        --live-panel: #252525;
+        --live-panel-hover: #2d2d2d;
+        --live-border: #404040;
+        --live-text: #e5e5e5;
+        --live-muted: #a3a3a3;
+        --live-accent: #ea580c;
+        --live-accent-hover: #f97316;
+      }
       html, body {
         margin: 0;
         height: 100%;
-        font-family: Arial, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: var(--live-bg);
+        color: var(--live-text);
       }
-      #map {
-        width: 100%;
+      .app-root {
+        display: flex;
+        flex-direction: column;
         height: 100%;
+        min-height: 0;
+      }
+      .top-bar {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        height: 48px;
+        padding: 0 12px 0 16px;
+        background: var(--live-bg);
+        border-bottom: 1px solid var(--live-border);
+        z-index: 1000;
+      }
+      .top-bar .brand {
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--live-text);
+        white-space: nowrap;
+      }
+      .top-bar .top-search {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+        max-width: 360px;
+      }
+      .top-bar .search-input {
+        flex: 1;
+        min-width: 0;
+        height: 34px;
+        padding: 0 10px;
+        border: 1px solid var(--live-border);
+        border-radius: 4px;
+        background: var(--live-panel);
+        color: var(--live-text);
+        font-size: 0.875rem;
+      }
+      .top-bar .search-input::placeholder {
+        color: var(--live-muted);
+      }
+      .top-bar .search-btn {
+        height: 34px;
+        padding: 0 12px;
+        border: 1px solid var(--live-border);
+        border-radius: 4px;
+        background: var(--live-panel);
+        color: var(--live-text);
+        font-size: 0.8125rem;
+        cursor: pointer;
+      }
+      .top-bar .search-btn:hover {
+        background: var(--live-panel-hover);
+      }
+      .maps-dropdown {
+        position: relative;
+      }
+      .maps-dropdown-trigger {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--live-muted);
+        font-size: 0.8125rem;
+        cursor: pointer;
+      }
+      .maps-dropdown-trigger:hover {
+        color: var(--live-text);
+        background: var(--live-panel);
+      }
+      .maps-dropdown-trigger .chevron {
+        font-size: 0.7em;
+        opacity: 0.8;
+        transition: transform 0.2s;
+      }
+      .maps-dropdown.open .maps-dropdown-trigger .chevron {
+        transform: rotate(180deg);
+      }
+      .maps-dropdown-panel {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        margin-top: 4px;
+        min-width: 180px;
+        max-height: 280px;
+        overflow-y: auto;
+        background: var(--live-panel);
+        border: 1px solid var(--live-border);
+        border-radius: 6px;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+        z-index: 1000;
+        display: none;
+      }
+      .maps-dropdown.open .maps-dropdown-panel {
+        display: block;
+      }
+      .map-tab {
+        display: block;
+        width: 100%;
+        padding: 8px 14px;
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        color: var(--live-muted);
+        font-size: 0.8125rem;
+        cursor: pointer;
+        text-align: left;
+      }
+      .map-tab:hover {
+        color: var(--live-text);
+        background: var(--live-panel-hover);
+      }
+      .map-tab.active {
+        background: var(--live-accent);
+        color: #fff;
+        font-weight: 600;
+      }
+      .main-row {
+        flex: 1;
+        display: flex;
+        min-height: 0;
+      }
+      .sidebar-left {
+        flex-shrink: 0;
+        width: 300px;
+        background: var(--live-panel);
+        border-right: 1px solid var(--live-border);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        z-index: 999;
+      }
+      .sidebar-left .panel-header {
+        padding: 12px 12px 8px;
+        border-bottom: 1px solid var(--live-border);
+        cursor: default;
+      }
+      .sidebar-left .panel-title {
+        margin: 0;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--live-text);
+      }
+      .sidebar-left #source-grid {
+        flex: 1;
+        overflow-y: auto;
+        padding: 8px 12px 12px;
+        align-content: flex-start;
+      }
+      .map-shell {
+        flex: 1;
+        position: relative;
+        min-width: 0;
+      }
+      .map-pane {
+        position: absolute;
+        inset: 0;
+      }
+      .map-canvas {
+        position: absolute;
+        inset: 0;
+        display: none;
+      }
+      .map-canvas.active {
+        display: block;
       }
       .leaflet-popup-content {
         width: 280px;
+        background: var(--live-panel);
+        color: var(--live-text);
+        padding: 10px 12px;
+        border-radius: 4px;
+        border: 1px solid var(--live-border);
+      }
+      .leaflet-popup-content a {
+        color: var(--live-accent);
+        text-decoration: none;
+      }
+      .leaflet-popup-content a:hover {
+        color: var(--live-accent-hover);
+        text-decoration: underline;
+      }
+      .leaflet-popup-content .muted {
+        color: var(--live-muted);
+        font-size: 0.8rem;
+      }
+      .leaflet-popup-content-wrapper {
+        border-radius: 4px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      }
+      .leaflet-popup-tip {
+        background: var(--live-panel);
+      }
+      .popup-video-wrap {
+        margin-top: 0.5rem;
+        position: relative;
+        width: 100%;
+        max-width: 320px;
+        border-radius: 4px;
+        overflow: hidden;
+        background: #111;
+      }
+      .popup-video-wrap .popup-video {
+        width: 100%;
+        aspect-ratio: 16/9;
+        border: 0;
+        display: block;
+      }
+      .popup-related-video {
+        margin-top: 0.75rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--live-border);
+      }
+      .popup-related-video .muted {
+        display: block;
+        margin-bottom: 0.35rem;
+        font-size: 0.75rem;
+      }
+      .ai-summary-section {
+        margin: 0.75rem 0;
+      }
+      .ai-summary-btn {
+        background: var(--live-accent, #3b82f6);
+        color: #fff;
+        border: none;
+        padding: 0.35rem 0.6rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        cursor: pointer;
+      }
+      .ai-summary-btn:hover {
+        opacity: 0.9;
+      }
+      .ai-summary-result {
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        color: var(--live-fg, #e2e8f0);
+      }
+      .ai-summary-result.loading {
+        color: var(--live-muted);
+        font-style: italic;
+      }
+      .ai-summary-result.error {
+        color: #f87171;
+      }
+      .popup-ai-summary {
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--live-border);
+      }
+      .popup-ai-summary .ai-summary-btn {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+      }
+      .popup-ai-summary .ai-summary-result {
+        margin-top: 0.35rem;
+        font-size: 0.85rem;
       }
       .muted {
-        color: #666;
+        color: var(--live-muted);
         font-size: 0.9rem;
+      }
+      .side-panel {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        width: 360px;
+        z-index: 1001;
+        background: var(--live-panel);
+        border-left: 1px solid var(--live-border);
+        box-shadow: -4px 0 24px rgba(0,0,0,0.3);
+        transform: translateX(100%);
+        transition: transform 180ms ease-in-out;
+        overflow-y: auto;
+      }
+      .side-panel.open {
+        transform: translateX(0);
+      }
+      .side-panel-inner {
+        padding: 14px 14px 20px;
+        color: var(--live-text);
+      }
+      .side-panel-inner h2, .side-panel-inner h3 {
+        color: var(--live-text);
+      }
+      #country-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .country-flag {
+        font-size: 1.5em;
+        line-height: 1;
+        display: inline-block;
+      }
+      .side-panel .close-btn {
+        border: 1px solid var(--live-border);
+        background: var(--live-bg);
+        color: var(--live-text);
+        border-radius: 4px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-size: 0.8125rem;
+      }
+      .side-panel .close-btn:hover {
+        background: var(--live-panel-hover);
+      }
+      .section-title {
+        margin: 14px 0 8px;
+        font-size: 0.875rem;
+        color: var(--live-muted);
+        font-weight: 600;
+      }
+      .story-list {
+        display: grid;
+        gap: 6px;
+      }
+      .story-item {
+        border: 1px solid var(--live-border);
+        border-radius: 4px;
+        padding: 8px 10px;
+        background: var(--live-bg);
+      }
+      .story-item a {
+        color: var(--live-accent);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.875rem;
+      }
+      .story-item a:hover {
+        color: var(--live-accent-hover);
+        text-decoration: underline;
+      }
+      .story-item .muted {
+        font-size: 0.75rem;
+        margin-top: 2px;
+      }
+      .panel-drag-hint {
+        display: none;
+      }
+      .source-grid {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .source-chip {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.7rem;
+        border: 1px solid var(--live-border);
+        border-radius: 999px;
+        padding: 2px 6px 2px 4px;
+        background: var(--live-bg);
+        color: var(--live-muted);
+      }
+      .source-chip img {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+      }
+      .source-icon {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+        background: #fff;
+      }
+      .marker-wrap {
+        position: relative;
+        width: 14px;
+        height: 20px;
+      }
+      .pin-tip {
+        position: absolute;
+        left: 50%;
+        bottom: 0;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 3px solid transparent;
+        border-right: 3px solid transparent;
+        border-top: 5px solid #1f2937;
+        filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.3));
+      }
+      .pin-head {
+        position: absolute;
+        left: 1px;
+        top: 0;
+      }
+      .topic-badge .topic-icon-img {
+        width: 9px;
+        height: 9px;
+        object-fit: contain;
+        vertical-align: middle;
+        display: inline-block;
+      }
+      .topic-badge {
+        position: absolute;
+        right: -5px;
+        bottom: -1px;
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        font-size: 7px;
+        line-height: 9px;
+        text-align: center;
+      }
+      .popup-source .source-icon {
+        width: 12px;
+        height: 12px;
+      }
+      .country-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: #333;
+        text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 1px 2px rgba(0,0,0,0.15);
+        white-space: nowrap;
+        pointer-events: none;
+        user-select: none;
+      }
+      .country-label-wrap {
+        background: none !important;
+        border: none !important;
+      }
+      .country-label-wrap .leaflet-div-icon-inner {
+        margin: 0;
+        padding: 0;
+        border: none;
+        background: none;
+      }
+      .leaflet-control-attribution {
+        font-size: 10px;
+        padding: 2px 6px;
+        background: rgba(255,255,255,0.9) !important;
+      }
+      .leaflet-control-zoom {
+        border: 1px solid rgba(0,0,0,0.2) !important;
+        border-radius: 2px;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.15);
+      }
+      .leaflet-control-zoom a {
+        width: 30px !important;
+        height: 30px !important;
+        line-height: 28px !important;
+        font-size: 18px !important;
+      }
+      .leaflet-control-layers {
+        border-radius: 2px;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.15);
+      }
+      .popup-source {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .side-panel .fact-grid {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid var(--live-border);
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 4px;
+        font-size: 0.8rem;
+        color: var(--live-muted);
+      }
+      .side-panel .fact-grid b {
+        color: var(--live-text);
+      }
+      .graphic-detail-section {
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid var(--live-border);
+      }
+      .graphic-detail-heading {
+        margin-top: 0;
+        font-size: 0.9rem;
+        color: var(--live-text);
+      }
+      .graphic-detail-label {
+        color: #e3120b;
+        font-weight: 700;
+      }
+      .graphic-detail-desc {
+        font-size: 0.75rem;
+        color: var(--live-muted);
+        margin: 4px 0 10px 0;
+      }
+      .graphic-detail-section .story-item {
+        border-left: 3px solid #e3120b;
+      }
+      .economist-rankings-section {
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid var(--live-border);
+      }
+      .economist-rankings-heading {
+        color: var(--live-text);
+      }
+      .economist-rankings-desc {
+        font-size: 0.75rem;
+        color: var(--live-muted);
+        margin: 4px 0 8px;
+      }
+      .economist-rankings-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .ranking-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: 0.8125rem;
+      }
+      .ranking-label {
+        color: var(--live-muted);
+      }
+      .ranking-value {
+        color: var(--live-text);
+        font-weight: 500;
+      }
+      .leaflet-control-fullscreen,
+      .leaflet-control-locate {
+        background: var(--live-panel) !important;
+        border: 1px solid var(--live-border) !important;
+        border-radius: 4px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        width: 30px;
+        height: 30px;
+        line-height: 28px;
+        text-align: center;
+        cursor: pointer;
+        font-size: 16px;
+        color: var(--live-text);
+      }
+      .leaflet-control-fullscreen:hover,
+      .leaflet-control-locate:hover {
+        background: var(--live-panel-hover) !important;
+      }
+      .leaflet-control-scale-line {
+        border: 1px solid var(--live-border);
+        border-top: none;
+        background: var(--live-panel) !important;
+      }
+      .leaflet-control-attribution {
+        font-size: 9px;
+        padding: 2px 6px;
+        background: rgba(37,37,37,0.92) !important;
+        color: var(--live-muted);
+      }
+      .leaflet-control-attribution a {
+        color: var(--live-accent);
+      }
+      .leaflet-control-zoom {
+        border: 1px solid var(--live-border) !important;
+        border-radius: 4px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        overflow: hidden;
+      }
+      .leaflet-control-zoom a {
+        background: var(--live-panel) !important;
+        color: var(--live-text) !important;
+        border: none !important;
+      }
+      .leaflet-control-zoom a:hover {
+        background: var(--live-panel-hover) !important;
+      }
+      .leaflet-control-layers {
+        border-radius: 4px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        border: 1px solid var(--live-border) !important;
+      }
+      .leaflet-control-layers-expanded {
+        background: var(--live-panel) !important;
+        color: var(--live-text);
+      }
+      .leaflet-control-layers label {
+        color: var(--live-text);
       }
     </style>
   </head>
   <body>
-    <div id="map"></div>
+    <div class="app-root">
+      <header class="top-bar">
+        <span class="brand">News Map</span>
+        <div class="top-search">
+          <input id="country-search-input" class="search-input" type="text" placeholder="Search country (e.g. Kenya, India)" />
+          <button id="country-search-btn" class="search-btn" type="button">Search</button>
+        </div>
+        <div id="country-search-status" class="muted search-status" style="font-size:0.75rem;min-width:120px;"></div>
+        <div class="maps-dropdown" id="maps-dropdown">
+          <button class="maps-dropdown-trigger" id="maps-dropdown-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+            <span id="maps-dropdown-label">Maps</span>
+            <span class="chevron" aria-hidden="true">▾</span>
+          </button>
+          <div class="maps-dropdown-panel" id="maps-dropdown-panel" role="menu">
+            <button class="map-tab active" data-map-key="economics" type="button" role="menuitem">Economics</button>
+            <button class="map-tab" data-map-key="geopolitics" type="button" role="menuitem">Geopolitics</button>
+            <button class="map-tab" data-map-key="conflicts" type="button" role="menuitem">Conflicts</button>
+            <button class="map-tab" data-map-key="sports" type="button" role="menuitem">Sports</button>
+          </div>
+        </div>
+      </header>
+      <div class="main-row">
+        <aside id="live-updates-panel" class="sidebar-left">
+          <div id="live-updates-drag-handle" class="panel-header">
+            <p class="panel-title">Live map updates</p>
+          </div>
+          <div id="source-grid" class="source-grid"></div>
+        </aside>
+        <div class="map-shell">
+          <div class="map-pane">
+            <div id="map-economics" class="map-canvas active"></div>
+            <div id="map-geopolitics" class="map-canvas"></div>
+            <div id="map-conflicts" class="map-canvas"></div>
+            <div id="map-sports" class="map-canvas"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside id="country-side-panel" class="side-panel">
+      <div class="side-panel-inner">
+        <button id="country-close-btn" class="close-btn" type="button">Close</button>
+        <h2 id="country-title">Country details</h2>
+        <div id="country-facts" class="fact-grid"></div>
+        <div id="country-ai-summary-section" class="ai-summary-section">
+          <button id="country-ai-summary-btn" type="button" class="ai-summary-btn">AI summary</button>
+          <div id="country-ai-summary-result" class="ai-summary-result" aria-live="polite"></div>
+        </div>
+        <div id="economist-rankings-section" class="economist-rankings-section" style="display:none;">
+          <h3 class="section-title economist-rankings-heading">Economist-style rankings</h3>
+          <p class="economist-rankings-desc">Country rank in key indices (updated when data is refreshed)</p>
+          <div id="economist-rankings-list" class="economist-rankings-list"></div>
+        </div>
+        <div id="graphic-detail-section" class="graphic-detail-section" style="display:none;">
+          <h3 class="section-title graphic-detail-heading">
+            <span class="graphic-detail-label">The Economist</span> Graphic detail
+          </h3>
+          <p class="graphic-detail-desc">Charts, maps and data on this country</p>
+          <div id="graphic-detail-list" class="story-list"></div>
+        </div>
+        <h3 class="section-title">Coverage from all sources</h3>
+        <div id="all-sources-list" class="story-list"></div>
+        <h3 class="section-title">Recent mapped updates</h3>
+        <div id="country-story-list" class="story-list"></div>
+      </div>
+    </aside>
     <script
       src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
     <script>
-      const map = L.map("map").setView([20, 0], 2);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap contributors",
-        maxZoom: 18
-      }).addTo(map);
-
-      const markerLayer = L.layerGroup().addTo(map);
+      const SOURCE_META = {
+        bbc: { name: "BBC", logo: "https://cdn.simpleicons.org/bbc/FFFFFF" },
+        bbc_asia: { name: "BBC Asia", logo: "https://cdn.simpleicons.org/bbc/FFFFFF" },
+        bbc_africa: { name: "BBC Africa", logo: "https://cdn.simpleicons.org/bbc/FFFFFF" },
+        bbc_middle_east: { name: "BBC Middle East", logo: "https://cdn.simpleicons.org/bbc/FFFFFF" },
+        economist: { name: "The Economist", logo: "/api/source-logo/economist" },
+        economist_asia: { name: "The Economist Asia", logo: "/api/source-logo/economist" },
+        economist_mea: { name: "The Economist MEA", logo: "/api/source-logo/economist" },
+        economist_graphic_detail: { name: "The Economist Graphic detail", logo: "/api/source-logo/economist" },
+        guardian_world: { name: "The Guardian", logo: "https://cdn.simpleicons.org/theguardian/FFFFFF" },
+        guardian_international: { name: "The Guardian International", logo: "https://cdn.simpleicons.org/theguardian/FFFFFF" },
+        dispatch: { name: "The Dispatch", logo: "https://logo.clearbit.com/thedispatch.com" },
+        politico: { name: "Politico", logo: "https://cdn.simpleicons.org/politico/FFFFFF" },
+        gov_us_dod_releases: { name: "US DoD Releases", logo: "https://logo.clearbit.com/defense.gov" },
+        gov_us_dod_contracts: { name: "US DoD Contracts", logo: "https://logo.clearbit.com/defense.gov" },
+        gov_eu_commission: { name: "EU Commission Press", logo: "https://logo.clearbit.com/europa.eu" },
+        gov_uk_announcements: { name: "UK Gov", logo: "https://logo.clearbit.com/gov.uk" },
+        gov_canada_news: { name: "Canada News", logo: "https://logo.clearbit.com/canada.ca" },
+        gov_canada_pm: { name: "Canada PM", logo: "https://logo.clearbit.com/pm.gc.ca" },
+        gov_canada_global_affairs: { name: "Canada Global Affairs", logo: "https://logo.clearbit.com/international.gc.ca" },
+        gov_brazil_planalto: { name: "Brazil Presidency", logo: "https://logo.clearbit.com/gov.br" },
+        gov_argentina_presidencia: { name: "Argentina Govt", logo: "https://logo.clearbit.com/argentina.gob.ar" },
+        gov_chile_presidencia: { name: "Chile Govt", logo: "https://logo.clearbit.com/gob.cl" },
+        gov_colombia_presidencia: { name: "Colombia Presidency", logo: "https://logo.clearbit.com/presidencia.gov.co" },
+        gov_mexico_presidencia: { name: "Mexico Govt", logo: "https://logo.clearbit.com/gob.mx" },
+        gov_peru_pcm: { name: "Peru Govt", logo: "https://logo.clearbit.com/gob.pe" },
+        gov_japan_kantei: { name: "Japan PM Office", logo: "https://logo.clearbit.com/kantei.go.jp" },
+        gov_japan_mof: { name: "Japan Finance", logo: "https://logo.clearbit.com/mof.go.jp" },
+        gov_india_mea: { name: "India MEA", logo: "https://logo.clearbit.com/mea.gov.in" },
+        gov_singapore_mfa: { name: "Singapore MFA", logo: "https://logo.clearbit.com/mfa.gov.sg" },
+        gov_south_korea_yonhap: { name: "South Korea (Yonhap)", logo: "https://logo.clearbit.com/yna.co.kr" },
+        gov_indonesia_kemlu: { name: "Indonesia MFA", logo: "https://logo.clearbit.com/kemlu.go.id" },
+        gov_malaysia_pmo: { name: "Malaysia PMO", logo: "https://logo.clearbit.com/pmo.gov.my" },
+        gov_philippines_dfa: { name: "Philippines DFA", logo: "https://logo.clearbit.com/dfa.gov.ph" },
+        gov_thailand_mfa: { name: "Thailand MFA", logo: "https://logo.clearbit.com/mfa.go.th" },
+        gov_vietnam_mofa: { name: "Vietnam MFA", logo: "https://logo.clearbit.com/mofa.gov.vn" },
+        gov_russia_kremlin: { name: "Russia Kremlin", logo: "https://logo.clearbit.com/kremlin.ru" },
+        gov_kazakhstan_pm: { name: "Kazakhstan PM", logo: "https://logo.clearbit.com/primeminister.kz" },
+        gov_uzbekistan_mfa: { name: "Uzbekistan MFA", logo: "https://logo.clearbit.com/mfa.uz" },
+        gov_south_africa: { name: "South Africa Govt", logo: "https://logo.clearbit.com/gov.za" },
+        gov_nigeria_fmino: { name: "Nigeria Govt", logo: "https://logo.clearbit.com/fmino.gov.ng" },
+        gov_kenya_president: { name: "Kenya Presidency", logo: "https://logo.clearbit.com/president.go.ke" },
+        gov_egypt_sis: { name: "Egypt SIS", logo: "https://logo.clearbit.com/sis.gov.eg" },
+        gov_ethiopia_pmo: { name: "Ethiopia PMO", logo: "https://logo.clearbit.com/pmo.gov.et" },
+        gov_ghana_presidency: { name: "Ghana Presidency", logo: "https://logo.clearbit.com/presidency.gov.gh" },
+        gov_tanzania_presidency: { name: "Tanzania Presidency", logo: "https://logo.clearbit.com/president.go.tz" },
+        gov_morocco_map: { name: "Morocco MFA", logo: "https://logo.clearbit.com/diplomatie.ma" },
+        gov_senegal_presidency: { name: "Senegal Presidency", logo: "https://logo.clearbit.com/presidence.sn" },
+        gov_au_commission: { name: "African Union", logo: "https://logo.clearbit.com/au.int" },
+        gov_australia_pm: { name: "Australia PM", logo: "https://logo.clearbit.com/pm.gov.au" },
+        gov_australia_rba: { name: "Australia RBA", logo: "https://logo.clearbit.com/rba.gov.au" },
+        gov_new_zealand_beehive: { name: "NZ Govt", logo: "https://logo.clearbit.com/beehive.govt.nz" },
+        amnesty: { name: "Amnesty International", logo: "https://logo.clearbit.com/amnesty.org" },
+        hrw: { name: "Human Rights Watch", logo: "https://logo.clearbit.com/hrw.org" },
+        aljazeera: { name: "Al Jazeera", logo: "https://cdn.simpleicons.org/aljazeera/CEA90D" },
+        rudaw_english: { name: "Rudaw English", logo: "https://logo.clearbit.com/rudaw.net" },
+        middle_east_eye: { name: "Middle East Eye", logo: "https://logo.clearbit.com/middleeasteye.net" },
+        dw_world: { name: "DW World", logo: "https://cdn.simpleicons.org/deutschewelle/FFFFFF" },
+        cnn: { name: "CNN", logo: "https://cdn.simpleicons.org/cnn/CC0000" },
+        nbc: { name: "NBC News", logo: "https://cdn.simpleicons.org/nbc/F37021" },
+        sky_news: { name: "Sky News", logo: "https://cdn.simpleicons.org/sky/0072C6" },
+        irrawaddy_myanmar: { name: "The Irrawaddy (Myanmar)", logo: "https://logo.clearbit.com/irrawaddy.com" },
+        reuters: { name: "Reuters", logo: "https://cdn.simpleicons.org/reuters/FF8000" },
+        wsj: { name: "Wall Street Journal", logo: "https://cdn.simpleicons.org/thewallstreetjournal/FFFFFF" },
+        washingtonpost: { name: "Washington Post", logo: "/api/source-logo/washingtonpost" },
+        nyt: { name: "New York Times", logo: "/api/source-logo/nyt" },
+        axios: { name: "Axios", logo: "https://cdn.simpleicons.org/axios/FFFFFF" },
+        espn_news: { name: "ESPN", logo: "https://cdn.simpleicons.org/espn/FF0033" },
+        espn_nfl: { name: "ESPN NFL", logo: "https://cdn.simpleicons.org/nfl/013369" },
+        espn_nba: { name: "ESPN NBA", logo: "https://cdn.simpleicons.org/nba/174B8A" },
+        espn_mlb: { name: "ESPN MLB", logo: "https://cdn.simpleicons.org/mlb/041E42" },
+        espn_nhl: { name: "ESPN NHL", logo: "https://cdn.simpleicons.org/nhl/000000" },
+        espn_soccer: { name: "ESPN Soccer", logo: "https://cdn.simpleicons.org/espn/FF0033" },
+        espn_ncf: { name: "ESPN College Football", logo: "https://cdn.simpleicons.org/ncaa/CC0000" },
+        espn_ncb: { name: "ESPN College Basketball", logo: "https://cdn.simpleicons.org/ncaa/CC0000" },
+        espn_ncaa: { name: "ESPN NCAA", logo: "https://cdn.simpleicons.org/ncaa/CC0000" },
+        espn_tennis: { name: "ESPN Tennis", logo: "https://cdn.simpleicons.org/espn/FF0033" }
+      };
+      SOURCE_META.x_reutersworld = { name: "X @ReutersWorld", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_bbcbreaking = { name: "X @BBCBreaking", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_ap = { name: "X @AP", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_un = { name: "X @UN", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_africacenter = { name: "X @AfricaCDC", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_thetimes = { name: "X @thetimes", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_politico = { name: "X @politico", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_janesintel = { name: "X @JanesINTEL", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_rand = { name: "X @RANDCorporation", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_amnesty = { name: "X @amnesty", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_isw = { name: "X @ISW", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_liveuamap = { name: "X @Liveuamap", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_carnegie = { name: "X @Carnegie", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_hudson = { name: "X @Hudson", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_barakravid = { name: "Barak Ravid (Axios)", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_clarissaward = { name: "Clarissa Ward (CNN)", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_richardengel = { name: "Richard Engel (NBC)", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_lynsaddler = { name: "X @lynsaddler (BBC)", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_nickpatonwalsh = { name: "Nick Paton Walsh (CNN)", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_borzsandor = { name: "Borzsándor (Reuters)", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_ianbremmer = { name: "Ian Bremmer", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_rudaw = { name: "Rudaw (X)", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_middleeasteye = { name: "Middle East Eye (X)", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.x_kurdistan24 = { name: "Kurdistan 24 (X)", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+      SOURCE_META.carnegie = { name: "Carnegie Endowment", logo: "https://logo.clearbit.com/carnegieendowment.org" };
+      SOURCE_META.aei = { name: "American Enterprise Institute", logo: "https://logo.clearbit.com/aei.org" };
+      SOURCE_META.hudson = { name: "Hudson Institute", logo: "https://logo.clearbit.com/hudson.org" };
+      SOURCE_META.substack_jamestown = { name: "Jamestown Foundation", logo: "https://logo.clearbit.com/jamestown.org" };
+      SOURCE_META.substack_rochan = { name: "Ukraine Conflict Monitor", logo: "https://logo.clearbit.com/rochanconsulting.com" };
+      SOURCE_META.substack_counteroffensive = { name: "The Counteroffensive", logo: "https://logo.clearbit.com/counteroffensive.substack.com" };
+      SOURCE_META.substack_warwickpowell = { name: "Warwick Powell (Substack)", logo: "https://cdn.simpleicons.org/substack/FF6719" };
+      SOURCE_META.substack_professorbonk = { name: "Professor Bonk (Substack)", logo: "https://cdn.simpleicons.org/substack/FF6719" };
+      const GHOST_WAR_ICON_SVG = "data:image/svg+xml," + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23444" d="M12 2c-4 0-7 3-7 7v2c-2 0-4 2-4 4v6h4v-2h2v2h2v-2h2v2h2v-2h4v-6c0-2-2-4-4-4V9c0-4-3-7-7-7z"/><circle cx="9" cy="10" r="1.5" fill="%23fff"/><circle cx="15" cy="10" r="1.5" fill="%23fff"/></svg>'
+      );
+      const TOPIC_META = {
+        conflict: { label: "Conflict", icon: "⚔️" },
+        ghost_war: { label: "Ghost war", icon: "<img src=\"" + GHOST_WAR_ICON_SVG + "\" class=\"topic-icon-img\" alt=\"Ghost war\" width=\"14\" height=\"14\"/>", iconEmoji: "👻" },
+        politics: { label: "Politics", icon: "🏛️" },
+        business: { label: "Business", icon: "💼" },
+        economy: { label: "Economy", icon: "📈" },
+        tech: { label: "Tech", icon: "💻" },
+        health: { label: "Health", icon: "🩺" },
+        climate: { label: "Climate", icon: "🌍" },
+        disaster: { label: "Disaster", icon: "🌪️" },
+        crime: { label: "Crime", icon: "🚨" },
+        other: { label: "General", icon: "📰" }
+      };
+      const MAP_DEFS = {
+        economics: { mapId: "map-economics", title: "Economics Map" },
+        geopolitics: { mapId: "map-geopolitics", title: "Geopolitics Map" },
+        conflicts: { mapId: "map-conflicts", title: "Conflicts Map" },
+        sports: { mapId: "map-sports", title: "Sports Map" }
+      };
+      const SPORTS_LEAGUE_META = {
+        nba: { name: "NBA", logo: "https://cdn.simpleicons.org/nba/174B8A" },
+        nfl: { name: "NFL", logo: "https://cdn.simpleicons.org/nfl/013369" },
+        nhl: { name: "NHL", logo: "https://cdn.simpleicons.org/nhl/000000" },
+        mlb: { name: "MLB", logo: "https://cdn.simpleicons.org/mlb/041E42" },
+        mls: { name: "MLS", logo: "https://logo.clearbit.com/mlssoccer.com" },
+        ncaa_football: { name: "College Football", logo: "https://logo.clearbit.com/ncaa.com" },
+        ncaa_basketball: { name: "College Basketball", logo: "https://logo.clearbit.com/ncaa.com" },
+        ncaa_baseball: { name: "College Baseball", logo: "https://logo.clearbit.com/ncaa.com" },
+        ncaa_tennis: { name: "College Tennis", logo: "https://logo.clearbit.com/ncaa.com" },
+        ncaa_lacrosse: { name: "College Lacrosse", logo: "https://logo.clearbit.com/ncaa.com" },
+        ncaa_soccer: { name: "College Soccer", logo: "https://logo.clearbit.com/ncaa.com" },
+        euroleague: { name: "EuroLeague Basketball", logo: "https://logo.clearbit.com/euroleague.net" },
+        fiba: { name: "FIBA", logo: "https://logo.clearbit.com/fiba.basketball" },
+        uefa_champions_league: { name: "UEFA Champions League", logo: "https://logo.clearbit.com/uefa.com" },
+        premier_league: { name: "Premier League", logo: "https://logo.clearbit.com/premierleague.com" },
+        la_liga: { name: "La Liga", logo: "https://logo.clearbit.com/laliga.com" },
+        bundesliga: { name: "Bundesliga", logo: "https://logo.clearbit.com/bundesliga.com" },
+        serie_a: { name: "Serie A", logo: "https://logo.clearbit.com/legaseriea.it" },
+        ligue_1: { name: "Ligue 1", logo: "https://logo.clearbit.com/ligue1.com" },
+        liga_pr: { name: "Liga de Puerto Rico (BSN)", logo: "https://logo.clearbit.com/bsnpr.com" },
+        cba: { name: "Chinese Basketball Association", logo: "https://logo.clearbit.com/cbaleague.com" },
+        khl: { name: "KHL", logo: "https://logo.clearbit.com/khl.ru" },
+        shl: { name: "SHL (Sweden)", logo: "https://logo.clearbit.com/shl.se" },
+        ahl: { name: "AHL", logo: "https://logo.clearbit.com/theahl.com" },
+        liiga: { name: "Liiga (Finland)", logo: "https://logo.clearbit.com/liiga.fi" },
+        czech_extraliga: { name: "Czech Extraliga", logo: "https://logo.clearbit.com/hokej.cz" },
+        sports: { name: "Sports", logo: "https://cdn.simpleicons.org/espn/FF0033" }
+      };
+      let activeMapKey = "economics";
+      let worldCountryGeoJson = null;
+      const mapContexts = {};
 
       function truncate(text, maxLen = 240) {
         if (!text) return "";
         return text.length > maxLen ? `${text.slice(0, maxLen - 1)}…` : text;
       }
 
-      function popupHtml(story) {
+      function sourceMeta(sourceKey) {
+        const key = String(sourceKey || "").toLowerCase();
+        return SOURCE_META[key] || {
+          name: key || "Unknown",
+          logo: "https://logo.clearbit.com/news.google.com"
+        };
+      }
+
+      function isEconomicsStory(story) {
+        const text = `${story.title || ""} ${story.summary || ""}`.toLowerCase();
+        return /(econom|finance|market|commodity|oil|gas|gold|copper|trade|tariff|inflation|interest rate|gdp|currency|bond|stocks?)/.test(text);
+      }
+
+      function isGeopoliticsStory(story) {
+        const src = String(story.source || "").toLowerCase();
+        if (["carnegie", "aei", "hudson", "x_carnegie", "x_hudson", "substack_jamestown", "rudaw_english", "middle_east_eye", "x_rudaw", "x_middleeasteye", "x_kurdistan24"].includes(src)) return true;
+        const text = `${story.title || ""} ${story.summary || ""}`.toLowerCase();
+        return /(diplom|summit|treaty|election|parliament|president|prime minister|foreign minister|sanctions|united nations|asean|nato|geopolitic|border)/.test(text);
+      }
+
+      function isConflictStory(story) {
+        const src = String(story.source || "").toLowerCase();
+        if (src === "x_isw" || src === "x_liveuamap") return true;
+        if (["substack_rochan", "substack_counteroffensive", "substack_warwickpowell", "substack_professorbonk"].includes(src)) return true;
+        if (["x_barakravid", "x_clarissaward", "x_richardengel", "x_lynsaddler", "x_nickpatonwalsh", "x_borzsandor", "x_ianbremmer", "x_rudaw", "x_middleeasteye", "x_kurdistan24"].includes(src)) return true;
+        if (["rudaw_english", "middle_east_eye"].includes(src)) return true;
+        const text = `${story.title || ""} ${story.summary || ""}`.toLowerCase();
+        return /(war|conflict|civil war|separat|insurg|militia|cartel|organized crime|armed group|junta|ceasefire|offensive|airstrike|rebel)/.test(text);
+      }
+
+      function isSportsStory(story) {
+        const src = String(story.source || "").toLowerCase();
+        if (src.startsWith("espn_")) return true;
+        const text = `${story.title || ""} ${story.summary || ""}`.toLowerCase();
+        return /(nba|nfl|nhl|mlb|mls|playoffs?|super bowl|world series|stanley cup|finals?|mvp|quarterback|touchdown|home run|basketball|football|hockey|soccer|champions league|euroleague|eurobasket|fiba|college (football|basketball|baseball|tennis|lacrosse|soccer)|ncaa|shl|ahl|khl|liiga|extraliga|bsn|puerto rico (basketball|league)|cba|chinese basketball)/.test(text);
+      }
+
+      function getLeagueForStory(story) {
+        const src = String(story.source || "").toLowerCase();
+        const text = `${story.title || ""} ${story.summary || ""}`.toLowerCase();
+        if (src === "espn_nfl") return "nfl";
+        if (src === "espn_nba") return "nba";
+        if (src === "espn_mlb") return "mlb";
+        if (src === "espn_nhl") return "nhl";
+        if (src === "espn_soccer") {
+          if (/\b(champions league|uefa|premier league|la liga|bundesliga|serie a|ligue 1)\b/.test(text)) return "uefa_champions_league";
+          return "mls";
+        }
+        if (src === "espn_ncf") return "ncaa_football";
+        if (src === "espn_ncb") return "ncaa_basketball";
+        if (src === "espn_ncaa") {
+          if (/\b(football|ncf|sec|big ten)\b/.test(text)) return "ncaa_football";
+          if (/\b(basketball|ncb|march madness)\b/.test(text)) return "ncaa_basketball";
+          if (/\b(baseball|college world series)\b/.test(text)) return "ncaa_baseball";
+          if (/\b(tennis|lacrosse|soccer)\b/.test(text)) return text.includes("tennis") ? "ncaa_tennis" : (text.includes("lacrosse") ? "ncaa_lacrosse" : "ncaa_soccer");
+          return "ncaa_basketball";
+        }
+        if (src === "espn_tennis") return "ncaa_tennis";
+        if (/\bkhl\b|kontinental hockey/.test(text)) return "khl";
+        if (/\bshl\b|swedish hockey/.test(text)) return "shl";
+        if (/\bahl\b|american hockey league/.test(text)) return "ahl";
+        if (/\bliiga\b|finnish (hockey|liiga)/.test(text)) return "liiga";
+        if (/\bczech (hockey|extraliga)|extraliga\b/.test(text)) return "czech_extraliga";
+        if (/\beuroleague|eurobasket|euroleague basketball/.test(text)) return "euroleague";
+        if (/\bfiba\b/.test(text)) return "fiba";
+        if (/\bchampions league|uefa\b/.test(text)) return "uefa_champions_league";
+        if (/\bpremier league\b/.test(text)) return "premier_league";
+        if (/\bla liga\b/.test(text)) return "la_liga";
+        if (/\bbundesliga\b/.test(text)) return "bundesliga";
+        if (/\bserie a\b/.test(text)) return "serie_a";
+        if (/\bligue 1\b/.test(text)) return "ligue_1";
+        if (/\bbsn\b|puerto rico.*basketball|baloncesto.*puerto rico/.test(text)) return "liga_pr";
+        if (/\bcba\b|chinese basketball association/.test(text)) return "cba";
+        if (/\bnba\b/.test(text)) return "nba";
+        if (/\bnfl\b/.test(text)) return "nfl";
+        if (/\bnhl\b/.test(text)) return "nhl";
+        if (/\bmlb\b/.test(text)) return "mlb";
+        if (/\bmls\b/.test(text)) return "mls";
+        return "sports";
+      }
+
+      function isGhostWarStory(story) {
+        const text = `${story.title || ""} ${story.summary || ""}`.toLowerCase();
+        if (/(ghost war|proxy war|proxy conflict)/.test(text)) return true;
+        if (/\b(backing|funding|funds|arming|supporting|backs|supports)\s+(rebels?|militias?|militant|insurgents?|factions?|armed groups?|proxies)/.test(text)) return true;
+        if (/\b(backing|funding|arming|support(?:ing|s)?)\s+(the\s+)?(m23|wagner|hezbollah|houthis?|kurds?|taliban|pmf|popular mobilization)/.test(text)) return true;
+        if (/\b(rwanda|uganda)\s+.*(m23|congo|drc|drcongo|goma)/.test(text) || /\b(m23|m23 rebels?)\s+.*(rwanda|congo|drc)/.test(text)) return true;
+        if (/\b(turkey|turkish)\s+.*(syria|syrian|rebel|faction|proxy)/.test(text) || /\b(syria|syrian)\s+.*(turkey|turkish|backed|proxy)/.test(text)) return true;
+        if (/\b(usa|united states|american)\s+.*(kurds?|kurdish).*(iran|iraq|syria)/.test(text) || /\b(kurds?|kurdish)\s+.*(iran|iraq|turkey).*(fund|back|support)/.test(text)) return true;
+        if (/\b(china|chinese)\s+.*(myanmar|burma|wa state|mndaa|ethnic armed|rebel)/.test(text) || /\b(myanmar|burma)\s+.*(china|chinese).*(back|fund|support|arm)/.test(text)) return true;
+        if (/\b(iran|iranian)\s+.*(hezbollah|houthis?|militia|proxy|syria|yemen)/.test(text) || /\b(saudi|uae|emirates)\s+.*(yemen|houthis?|libya|proxy)/.test(text)) return true;
+        if (/\b(iran|north western iran|northwestern iran)\s+.*(israel|strike|attack|covert|proxy|backing)/.test(text) || /\b(israel|israeli)\s+.*(iran|proxy|strike|covert)/.test(text)) return true;
+        if (/\b(external support|covert support|proxy force|foreign.backed|backed by)\s+(rebels?|militias?|insurgents?|faction)/.test(text)) return true;
+        if (/\b(arms?\s+to|weapons?\s+to|military aid to)\s+(rebels?|militias?|insurgents?|opposition)/.test(text)) return true;
+        return false;
+      }
+
+      function classifyStoryTopic(story) {
+        if (isGhostWarStory(story)) return "ghost_war";
+        const text = `${story.title || ""} ${story.summary || ""}`.toLowerCase();
+        const checks = [
+          ["conflict", /(war|conflict|offensive|missile|troops|military|strike|ceasefire|battle|attack)\b/],
+          ["disaster", /(earthquake|flood|wildfire|hurricane|typhoon|cyclone|storm|eruption|disaster)\b/],
+          ["politics", /(election|parliament|president|prime minister|government|policy|minister|senate|diplomat)\b/],
+          ["economy", /(inflation|gdp|recession|interest rate|central bank|trade|tariff)\b/],
+          ["business", /(company|market|stock|investor|deal|merger|earnings|bank|startup)\b/],
+          ["tech", /(ai|artificial intelligence|chip|software|technology|cyber|data center)\b/],
+          ["health", /(health|disease|virus|hospital|vaccine|who|outbreak)\b/],
+          ["climate", /(climate|emission|carbon|warming|weather|environment)\b/],
+          ["crime", /(police|court|judge|arrest|crime|trial|prosecutor|corruption)\b/]
+        ];
+        for (const [topic, re] of checks) {
+          if (re.test(text)) return topic;
+        }
+        return "other";
+      }
+
+      function normalizeCountryKey(name) {
+        return String(name || "")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/\p{Diacritic}/gu, "")
+          .replace(/[^a-z0-9 ]+/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+      }
+
+      function majorEventSignal(story) {
+        const text = `${story.title || ""} ${story.summary || ""}`.toLowerCase();
+        const rules = [
+          { label: "Ghost war / proxy support", re: /(ghost war|proxy war|backing rebels?|funding militia|arming insurgents?|external support for|m23.*rwanda|rwanda.*m23|turkey.*syria.*rebel|china.*myanmar.*rebel|support for (m23|hezbollah|houthis?|kurds?))/ },
+          { label: "Civil war and armed clashes", re: /(civil war|rebels?|insurgenc|junta|ethnic armed|military offensive)/ },
+          { label: "Student protests and civil unrest", re: /(student protest|demonstration|protest|riot|crackdown)/ },
+          { label: "Separatist or insurgent activity", re: /(separatist|secession|guerrilla|militia attack)/ },
+          { label: "Geopolitical tensions", re: /(border clash|maritime dispute|naval standoff|sanctions|diplomatic row)/ },
+          { label: "Humanitarian and displacement crisis", re: /(refugee|displaced|humanitarian|famine|aid access|cholera)/ },
+          { label: "Election and power struggle", re: /(election|coup|parliament vote|constitutional crisis)/ },
+          { label: "Disaster emergency response", re: /(earthquake|flood|wildfire|cyclone|typhoon|disaster)/ },
+        ];
+        for (const rule of rules) {
+          if (rule.re.test(text)) return rule.label;
+        }
+        const topic = classifyStoryTopic(story);
+        const topicLabel = (TOPIC_META[topic] || TOPIC_META.other).label;
+        return `${topicLabel} developments`;
+      }
+
+      function buildCountryMajorEvents(stories) {
+        const byCountry = {};
+        stories.forEach((story) => {
+          const country = story.country || "";
+          const key = normalizeCountryKey(country);
+          if (!key) return;
+          const signal = majorEventSignal(story);
+          if (!byCountry[key]) byCountry[key] = { country, signals: {}, sample: story };
+          byCountry[key].signals[signal] = (byCountry[key].signals[signal] || 0) + 1;
+          // Keep newest as sample fallback.
+          if ((story.published_at || "") > (byCountry[key].sample?.published_at || "")) {
+            byCountry[key].sample = story;
+          }
+        });
+
+        const out = {};
+        Object.keys(byCountry).forEach((key) => {
+          const entry = byCountry[key];
+          const sortedSignals = Object.entries(entry.signals).sort((a, b) => b[1] - a[1]);
+          const topSignal = sortedSignals[0]?.[0] || "Major developments";
+          const country = entry.country || "this country";
+          const sample = entry.sample || {};
+          out[key] = {
+            linked_title: `${topSignal} in ${country}`,
+            brief_summary: truncate(sample.summary || sample.title || "", 170),
+            source_headline: sample.title || "",
+          };
+        });
+        return out;
+      }
+
+      function sourceIconHtml(sourceKey, topicKey = "other") {
+        const meta = sourceMeta(sourceKey);
+        const topic = TOPIC_META[topicKey] || TOPIC_META.other;
+        const bgBySource = {
+          bbc: "#000000",
+          bbc_asia: "#000000",
+          bbc_africa: "#000000",
+          bbc_middle_east: "#000000",
+          economist: "#EB001B",
+          economist_asia: "#EB001B",
+          economist_mea: "#EB001B",
+          economist_graphic_detail: "#EB001B",
+          guardian_world: "#052962",
+          guardian_international: "#052962",
+          dispatch: "#1f2937",
+          politico: "#A41E21",
+          gov_us_dod_releases: "#111827",
+          gov_us_dod_contracts: "#111827",
+          gov_eu_commission: "#003399",
+          gov_uk_announcements: "#003078",
+          gov_canada_news: "#CC0000",
+          gov_canada_pm: "#CC0000",
+          gov_canada_global_affairs: "#CC0000",
+          gov_brazil_planalto: "#009C3B",
+          gov_argentina_presidencia: "#75AADB",
+          gov_chile_presidencia: "#0039A6",
+          gov_colombia_presidencia: "#FCD116",
+          gov_mexico_presidencia: "#006847",
+          gov_peru_pcm: "#D91023",
+          gov_japan_kantei: "#BC002D",
+          gov_japan_mof: "#BC002D",
+          gov_india_mea: "#FF9933",
+          gov_singapore_mfa: "#ED1C24",
+          gov_south_korea_yonhap: "#003478",
+          gov_indonesia_kemlu: "#CE1126",
+          gov_malaysia_pmo: "#010066",
+          gov_philippines_dfa: "#0038A8",
+          gov_thailand_mfa: "#A51931",
+          gov_vietnam_mofa: "#DA251D",
+          gov_russia_kremlin: "#0039A6",
+          gov_kazakhstan_pm: "#00AFCA",
+          gov_uzbekistan_mfa: "#0099B5",
+          gov_south_africa: "#007749",
+          gov_nigeria_fmino: "#008751",
+          gov_kenya_president: "#006600",
+          gov_egypt_sis: "#C8102E",
+          gov_ethiopia_pmo: "#078930",
+          gov_ghana_presidency: "#CE1126",
+          gov_tanzania_presidency: "#00A3DD",
+          gov_morocco_map: "#C1272D",
+          gov_senegal_presidency: "#00853F",
+          gov_au_commission: "#007D3D",
+          gov_australia_pm: "#012169",
+          gov_australia_rba: "#012169",
+          gov_new_zealand_beehive: "#00247D",
+          amnesty: "#111827",
+          hrw: "#111827",
+          aljazeera: "#0F172A",
+          rudaw_english: "#C41E3A",
+          middle_east_eye: "#1a1a1a",
+          dw_world: "#005B95",
+          cnn: "#CC0000",
+          nbc: "#F37021",
+          sky_news: "#0072C6",
+          irrawaddy_myanmar: "#1f2937",
+          reuters: "#111827",
+          wsj: "#111827",
+          washingtonpost: "#111827",
+          nyt: "#111827",
+          axios: "#111827",
+          x_reutersworld: "#000000",
+          x_bbcbreaking: "#000000",
+          x_ap: "#000000",
+          x_un: "#000000",
+          x_africacenter: "#000000",
+          x_thetimes: "#000000",
+          x_politico: "#000000",
+          x_janesintel: "#000000",
+          x_rand: "#000000",
+          x_amnesty: "#000000",
+          x_isw: "#000000",
+          x_liveuamap: "#000000",
+          x_carnegie: "#000000",
+          x_hudson: "#000000",
+          x_barakravid: "#000000",
+          x_clarissaward: "#000000",
+          x_richardengel: "#000000",
+          x_lynsaddler: "#000000",
+          x_nickpatonwalsh: "#000000",
+          x_borzsandor: "#000000",
+          x_ianbremmer: "#000000",
+          x_rudaw: "#000000",
+          x_middleeasteye: "#000000",
+          x_kurdistan24: "#000000",
+          carnegie: "#C41230",
+          aei: "#1a365d",
+          hudson: "#0d47a1",
+          substack_jamestown: "#1a472a",
+          substack_rochan: "#0057b7",
+          substack_counteroffensive: "#ffd700",
+          substack_warwickpowell: "#FF6719",
+          substack_professorbonk: "#FF6719",
+          espn_news: "#FF0033",
+          espn_nfl: "#013369",
+          espn_nba: "#174B8A",
+          espn_mlb: "#041E42",
+          espn_nhl: "#000000",
+          espn_soccer: "#FF0033",
+          espn_ncf: "#CC0000",
+          espn_ncb: "#CC0000",
+          espn_ncaa: "#CC0000",
+          espn_tennis: "#FF0033"
+        };
+        const bg = bgBySource[String(sourceKey || "").toLowerCase()] || "#1f2937";
+        return `
+          <span class="marker-wrap">
+            <span class="pin-head">
+              <img class="source-icon" src="${meta.logo}" style="background:${bg}" alt="${meta.name} logo" referrerpolicy="no-referrer" />
+            </span>
+            <span class="pin-tip"></span>
+            <span class="topic-badge" title="${topic.label}">${topic.icon}</span>
+          </span>
+        `;
+      }
+
+      function markerIcon(sourceKey, topicKey = "other") {
+        return L.divIcon({
+          className: "custom-pin",
+          html: sourceIconHtml(sourceKey, topicKey),
+          iconSize: [14, 20],
+          iconAnchor: [7, 19],
+          popupAnchor: [0, -16]
+        });
+      }
+
+      function sportsLeaguePinHtml(leagueKey) {
+        const meta = SPORTS_LEAGUE_META[leagueKey] || SPORTS_LEAGUE_META.sports;
+        const logo = meta.logo;
+        return `
+          <span class="marker-wrap">
+            <span class="pin-head">
+              <img class="source-icon" src="${logo}" alt="${meta.name}" referrerpolicy="no-referrer" />
+            </span>
+            <span class="pin-tip"></span>
+          </span>
+        `;
+      }
+
+      function sportsMarkerIcon(leagueKey) {
+        return L.divIcon({
+          className: "custom-pin",
+          html: sportsLeaguePinHtml(leagueKey),
+          iconSize: [14, 20],
+          iconAnchor: [7, 19],
+          popupAnchor: [0, -16]
+        });
+      }
+
+      function renderSourcePanel() {
+        const grid = document.getElementById("source-grid");
+        grid.innerHTML = Object.keys(SOURCE_META).map((key) => {
+          const meta = SOURCE_META[key];
+          return `
+            <div class="source-chip">
+              <img src="${meta.logo}" alt="${meta.name} logo" referrerpolicy="no-referrer" />
+              <span>${meta.name}</span>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function countryStyle() {
+        return {
+          color: "#708090",
+          weight: 1,
+          fillColor: "#a7c4e0",
+          fillOpacity: 0.06
+        };
+      }
+
+      function countryHighlightStyle() {
+        return {
+          color: "#1557b0",
+          weight: 2.2,
+          fillColor: "#72a7e0",
+          fillOpacity: 0.22
+        };
+      }
+
+      function getCountryNameFromFeature(feature) {
+        const p = feature?.properties || {};
+        return p.ADMIN || p.name || p.NAME || p.name_long || p.sovereignt || "";
+      }
+
+      const COUNTRY_TO_ISO2 = {
+        "afghanistan": "AF", "albania": "AL", "algeria": "DZ", "andorra": "AD", "angola": "AO",
+        "antigua and barbuda": "AG", "argentina": "AR", "armenia": "AM", "australia": "AU",
+        "austria": "AT", "azerbaijan": "AZ", "bahamas": "BS", "bahrain": "BH", "bangladesh": "BD",
+        "barbados": "BB", "belarus": "BY", "belgium": "BE", "belize": "BZ", "benin": "BJ",
+        "bhutan": "BT", "bolivia": "BO", "bosnia and herzegovina": "BA", "botswana": "BW",
+        "brazil": "BR", "brunei": "BN", "bulgaria": "BG", "burkina faso": "BF", "burundi": "BI",
+        "cabo verde": "CV", "cambodia": "KH", "cameroon": "CM", "canada": "CA",
+        "central african republic": "CF", "chad": "TD", "chile": "CL", "china": "CN",
+        "colombia": "CO", "comoros": "KM", "congo": "CG", "costa rica": "CR", "croatia": "HR",
+        "cuba": "CU", "cyprus": "CY", "czechia": "CZ", "czech republic": "CZ",
+        "democratic republic of the congo": "CD", "denmark": "DK", "djibouti": "DJ",
+        "dominica": "DM", "dominican republic": "DO", "ecuador": "EC", "egypt": "EG",
+        "el salvador": "SV", "equatorial guinea": "GQ", "eritrea": "ER", "estonia": "EE",
+        "eswatini": "SZ", "swaziland": "SZ", "ethiopia": "ET", "fiji": "FJ", "finland": "FI",
+        "france": "FR", "gabon": "GA", "gambia": "GM", "georgia": "GE", "germany": "DE",
+        "ghana": "GH", "greece": "GR", "grenada": "GD", "guatemala": "GT", "guinea": "GN",
+        "guinea-bissau": "GW", "guyana": "GY", "haiti": "HT", "honduras": "HN", "hungary": "HU",
+        "iceland": "IS", "india": "IN", "indonesia": "ID", "iran": "IR", "iraq": "IQ",
+        "ireland": "IE", "israel": "IL", "italy": "IT", "ivory coast": "CI", "côte d'ivoire": "CI",
+        "cote d'ivoire": "CI", "jamaica": "JM", "japan": "JP", "jordan": "JO", "kazakhstan": "KZ",
+        "kenya": "KE", "kiribati": "KI", "kuwait": "KW", "kyrgyzstan": "KG", "laos": "LA",
+        "latvia": "LV", "lebanon": "LB", "lesotho": "LS", "liberia": "LR", "libya": "LY",
+        "liechtenstein": "LI", "lithuania": "LT", "luxembourg": "LU", "madagascar": "MG",
+        "malawi": "MW", "malaysia": "MY", "maldives": "MV", "mali": "ML", "malta": "MT",
+        "marshall islands": "MH", "mauritania": "MR", "mauritius": "MU", "mexico": "MX",
+        "micronesia": "FM", "moldova": "MD", "monaco": "MC", "mongolia": "MN", "montenegro": "ME",
+        "morocco": "MA", "mozambique": "MZ", "myanmar": "MM", "burma": "MM", "namibia": "NA",
+        "nauru": "NR", "nepal": "NP", "netherlands": "NL", "new zealand": "NZ", "nicaragua": "NI",
+        "niger": "NE", "nigeria": "NG", "north macedonia": "MK", "macedonia": "MK", "norway": "NO",
+        "oman": "OM", "pakistan": "PK", "palau": "PW", "palestine": "PS", "panama": "PA",
+        "papua new guinea": "PG", "paraguay": "PY", "peru": "PE", "philippines": "PH",
+        "poland": "PL", "portugal": "PT", "qatar": "QA", "romania": "RO", "russia": "RU",
+        "russian federation": "RU", "rwanda": "RW", "saint kitts and nevis": "KN",
+        "saint lucia": "LC", "saint vincent and the grenadines": "VC", "samoa": "WS",
+        "san marino": "SM", "sao tome and principe": "ST", "saudi arabia": "SA", "senegal": "SN",
+        "serbia": "RS", "seychelles": "SC", "sierra leone": "SL", "singapore": "SG",
+        "slovakia": "SK", "slovenia": "SI", "solomon islands": "SB", "somalia": "SO",
+        "south africa": "ZA", "south korea": "KR", "korea republic of": "KR", "south sudan": "SS",
+        "spain": "ES", "sri lanka": "LK", "sudan": "SD", "suriname": "SR", "sweden": "SE",
+        "switzerland": "CH", "syria": "SY", "syrian arab republic": "SY", "taiwan": "TW",
+        "tajikistan": "TJ", "tanzania": "TZ", "thailand": "TH", "timor-leste": "TL", "east timor": "TL",
+        "togo": "TG", "tonga": "TO", "trinidad and tobago": "TT", "tunisia": "TN", "turkey": "TR",
+        "türkiye": "TR", "turkmenistan": "TM", "tuvalu": "TV", "uganda": "UG", "ukraine": "UA",
+        "united arab emirates": "AE", "united kingdom": "GB", "united states": "US",
+        "united states of america": "US", "usa": "US", "uruguay": "UY", "uzbekistan": "UZ",
+        "vanuatu": "VU", "venezuela": "VE", "vietnam": "VN", "viet nam": "VN", "yemen": "YE",
+        "zambia": "ZM", "zimbabwe": "ZW"
+      };
+
+      function getCountryFlag(countryName) {
+        if (!countryName || typeof countryName !== "string") return "";
+        const key = countryName.toLowerCase().trim().replace(/\s+/g, " ");
+        const iso2 = COUNTRY_TO_ISO2[key] || COUNTRY_TO_ISO2[key.replace(/\s*\([^)]*\)\s*$/, "").trim()];
+        if (!iso2 || iso2.length !== 2) return "";
+        const a = 0x1F1E6 - 65;
+        return String.fromCodePoint(a + iso2.charCodeAt(0), a + iso2.charCodeAt(1));
+      }
+
+
+      function getFeatureCenter(feature) {
+        const g = feature?.geometry;
+        if (!g || !g.coordinates) return null;
+        let coords = [];
+        if (g.type === "Polygon") coords = g.coordinates[0] || [];
+        else if (g.type === "MultiPolygon") coords = (g.coordinates[0] && g.coordinates[0][0]) || [];
+        if (coords.length === 0) return null;
+        let sumLat = 0, sumLng = 0, n = 0;
+        coords.forEach((c) => {
+          sumLng += c[0];
+          sumLat += c[1];
+          n += 1;
+        });
+        return n ? [sumLat / n, sumLng / n] : null;
+      }
+
+      function normalizeCountryName(name) {
+        return String(name || "")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/\p{Diacritic}/gu, "")
+          .replace(/[^a-z0-9 ]+/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+      }
+
+      function setCountrySelection(context, layer) {
+        if (context.selectedCountryLayer && context.selectedCountryLayer !== layer) {
+          context.selectedCountryLayer.setStyle(countryStyle());
+        }
+        context.selectedCountryLayer = layer;
+        layer.setStyle(countryHighlightStyle());
+      }
+
+      function searchAndOpenCountry(rawQuery) {
+        const context = mapContexts[activeMapKey];
+        const query = normalizeCountryName(rawQuery);
+        const statusEl = document.getElementById("country-search-status");
+        if (!query) {
+          statusEl.textContent = "Enter a country name to search.";
+          return;
+        }
+
+        let match = context?.countryLayerIndex?.[query] || null;
+        if (!match) {
+          const key = Object.keys(context?.countryLayerIndex || {}).find((k) => k.includes(query));
+          if (key) match = context.countryLayerIndex[key];
+        }
+
+        if (!match) {
+          statusEl.textContent = `No country found for "${rawQuery}".`;
+          return;
+        }
+
+        statusEl.textContent = `Showing ${match.countryName}.`;
+        setCountrySelection(context, match.layer);
+        if (typeof match.layer.getBounds === "function") {
+          context.map.fitBounds(match.layer.getBounds(), { maxZoom: 5, padding: [18, 18] });
+        }
+        openCountryPanel(match.countryName);
+      }
+
+      function storyCardHtml(story) {
+        const title = story.title || "Untitled";
+        const url = story.url || "#";
+        const readerUrl = toReaderUrl(url);
+        const source = sourceMeta(story.source);
+        const published = story.published_at || "";
+        return `
+          <article class="story-item">
+            <a href="${readerUrl}" target="_blank" rel="noopener noreferrer">${title}</a>
+            <div class="muted">${source.name}${published ? ` - ${published}` : ""}</div>
+          </article>
+        `;
+      }
+
+      function isXReportSource(sourceKey) {
+        return String(sourceKey || "").toLowerCase().startsWith("x_");
+      }
+
+      function canonicalXUrl(rawUrl) {
+        const url = String(rawUrl || "").trim();
+        if (!url) return "";
+        return url
+          .replace(/^https?:\/\/nitter\.net\//i, "https://x.com/")
+          .replace(/^https?:\/\/nitter\.[^/]+\//i, "https://x.com/");
+      }
+
+      function getVideoEmbed(story) {
+        if (!story) return null;
+        const text = `${story.url || ""} ${story.summary || ""} ${story.title || ""}`;
+        const ytMatch = text.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        if (ytMatch) return { type: "youtube", id: ytMatch[1], embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}?rel=0` };
+        const vimeoMatch = text.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+        if (vimeoMatch) return { type: "vimeo", id: vimeoMatch[1], embedUrl: `https://player.vimeo.com/video/${vimeoMatch[1]}` };
+        const xMatch = text.match(/(?:twitter\.com|x\.com)\/(\w+)\/status\/(\d+)/);
+        if (xMatch) return { type: "x", statusId: xMatch[2], url: `https://x.com/${xMatch[1]}/status/${xMatch[2]}` };
+        return null;
+      }
+
+      function videoEmbedHtml(story) {
+        const video = getVideoEmbed(story);
+        if (!video) return "";
+        if (video.type === "youtube" || video.type === "vimeo") {
+          return `<div class="popup-video-wrap"><iframe class="popup-video" src="${video.embedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+        }
+        if (video.type === "x") {
+          return `<div class="popup-video-wrap"><blockquote class="twitter-tweet" data-dnt="true"><a href="${video.url}"></a></blockquote></div>`;
+        }
+        return "";
+      }
+
+      function relatedVideoEmbedHtml(videoUrl) {
+        if (!videoUrl || typeof videoUrl !== "string") return "";
+        const url = canonicalXUrl(videoUrl);
+        const ytMatch = url.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        if (ytMatch) return `<div class="popup-video-wrap"><iframe class="popup-video" src="https://www.youtube.com/embed/${ytMatch[1]}?rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+        const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+        if (vimeoMatch) return `<div class="popup-video-wrap"><iframe class="popup-video" src="https://player.vimeo.com/video/${vimeoMatch[1]}" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe></div>`;
+        if (/^(https?:\/\/)?(www\.)?(x\.com|twitter\.com)\/\w+\/status\/\d+/.test(url)) return `<div class="popup-video-wrap"><blockquote class="twitter-tweet" data-dnt="true"><a href="${url}"></a></blockquote></div>`;
+        return "";
+      }
+
+      function toReaderUrl(url) {
+        const raw = String(url || "").trim();
+        if (!raw || raw === "#") return "#";
+        const stripped = raw.replace(/^https?:\/\//i, "");
+        return `https://r.jina.ai/http://${stripped}`;
+      }
+
+      function escapeAttr(s) {
+        if (s == null) return "";
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/"/g, "&quot;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      async function fetchAiSummary(type, body) {
+        const res = await fetch("/api/ai-summary", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type, ...body })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        return data.summary || "";
+      }
+
+      async function openCountryPanel(countryName) {
+        const sidePanel = document.getElementById("country-side-panel");
+        const titleEl = document.getElementById("country-title");
+        const factsEl = document.getElementById("country-facts");
+        const graphicDetailSection = document.getElementById("graphic-detail-section");
+        const graphicDetailList = document.getElementById("graphic-detail-list");
+        const allSourcesListEl = document.getElementById("all-sources-list");
+        const storyListEl = document.getElementById("country-story-list");
+
+        const flagSpan = getCountryFlag(countryName)
+          ? `<span class="country-flag" aria-hidden="true">${getCountryFlag(countryName)}</span> `
+          : "";
+        titleEl.innerHTML = flagSpan;
+        titleEl.append(countryName);
+        factsEl.innerHTML = "Loading country details...";
+        const aiSummaryResult = document.getElementById("country-ai-summary-result");
+        if (aiSummaryResult) { aiSummaryResult.textContent = ""; aiSummaryResult.className = "ai-summary-result"; }
+        if (graphicDetailSection) graphicDetailSection.style.display = "none";
+        graphicDetailList.innerHTML = "";
+        allSourcesListEl.innerHTML = "";
+        storyListEl.innerHTML = "";
+        sidePanel.classList.add("open");
+        sidePanel.dataset.currentCountry = "";
+
+        try {
+          const response = await fetch(`/api/country?name=${encodeURIComponent(countryName)}`);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const payload = await response.json();
+          const originalName = payload.original_name || countryName;
+          const englishName = payload.english_name || countryName;
+          const displayName = originalName === englishName
+            ? englishName
+            : `${originalName} (${englishName})`;
+          const flag = getCountryFlag(englishName) || getCountryFlag(originalName) || getCountryFlag(countryName);
+          titleEl.innerHTML = flag ? `<span class="country-flag" aria-hidden="true">${flag}</span> ` : "";
+          titleEl.append(displayName);
+          sidePanel.dataset.currentCountry = englishName || countryName;
+          const facts = payload.facts || null;
+
+          if (facts) {
+            factsEl.innerHTML = `
+              <div><b>Capital:</b> ${facts.capital || "n/a"}</div>
+              <div><b>Population:</b> ${facts.population || "n/a"}</div>
+              <div><b>GDP (PPP):</b> ${facts.gdp_ppp || "n/a"}</div>
+              <div><b>Economist economic rank:</b> ${facts.economist_economic_rank || "n/a"}</div>
+              <div><b>Area:</b> ${facts.area_total || "n/a"}</div>
+              <div><b>Government:</b> ${facts.government_type || "n/a"}</div>
+            `;
+          } else {
+            factsEl.innerHTML = "No CIA Factbook data found for this country.";
+          }
+
+          const economistRankingsSection = document.getElementById("economist-rankings-section");
+          const economistRankingsList = document.getElementById("economist-rankings-list");
+          const rankings = payload.economist_rankings || [];
+          if (economistRankingsSection && economistRankingsList) {
+            if (rankings.length > 0) {
+              economistRankingsSection.style.display = "block";
+              economistRankingsList.innerHTML = rankings.map((r) => {
+                const rankStr = r.rank != null ? `#${r.rank}` : "—";
+                const scoreStr = r.score != null ? ` (${r.score}/10)` : "";
+                const yearStr = r.year ? ` ${r.year}` : "";
+                return `<div class="ranking-row"><span class="ranking-label">${r.label}</span><span class="ranking-value">${rankStr}${scoreStr}${yearStr}</span></div>`;
+              }).join("");
+            } else {
+              economistRankingsSection.style.display = "none";
+            }
+          }
+
+          const graphicDetailStories = payload.graphic_detail_stories || [];
+          if (graphicDetailSection && graphicDetailList) {
+            if (graphicDetailStories.length > 0) {
+              graphicDetailSection.style.display = "block";
+              graphicDetailList.innerHTML = graphicDetailStories.map(storyCardHtml).join("");
+            } else {
+              graphicDetailSection.style.display = "none";
+            }
+          }
+
+          const allSourceStories = payload.all_source_stories || [];
+          allSourcesListEl.innerHTML = allSourceStories.length
+            ? allSourceStories.map(storyCardHtml).join("")
+            : `<div class="muted">No source coverage matched this country yet.</div>`;
+
+          const recentStories = payload.recent_stories || [];
+          storyListEl.innerHTML = recentStories.length
+            ? recentStories.map(storyCardHtml).join("")
+            : `<div class="muted">No recent mapped stories for this country yet.</div>`;
+        } catch (error) {
+          factsEl.innerHTML = "Failed to load country details.";
+          console.error("Country panel load failed:", error);
+        }
+      }
+
+      function loadCountryBordersForContext(context) {
+        if (!worldCountryGeoJson) return;
+        context.countryLayer = L.geoJSON(worldCountryGeoJson, {
+          style: countryStyle,
+          onEachFeature(feature, layer) {
+            const countryName = getCountryNameFromFeature(feature);
+            const normalized = normalizeCountryName(countryName);
+            if (normalized) {
+              context.countryLayerIndex[normalized] = { layer, countryName };
+            }
+            layer.on("click", () => {
+              setCountrySelection(context, layer);
+              openCountryPanel(countryName);
+            });
+          }
+        }).addTo(context.map);
+
+        const labelsLayer = L.layerGroup();
+        (worldCountryGeoJson.features || []).forEach((feature) => {
+          const center = getFeatureCenter(feature);
+          const name = getCountryNameFromFeature(feature);
+          if (!center || !name) return;
+          const label = L.marker(center, {
+            icon: L.divIcon({
+              className: "country-label-wrap",
+              html: `<span class="country-label">${name}</span>`,
+              iconSize: [80, 14],
+              iconAnchor: [40, 7]
+            })
+          });
+          labelsLayer.addLayer(label);
+        });
+        context.countryLabelsLayer = labelsLayer;
+        function updateLabelsVisibility() {
+          const z = context.map.getZoom();
+          if (z >= 3) {
+            if (!context.map.hasLayer(labelsLayer)) labelsLayer.addTo(context.map);
+          } else {
+            if (context.map.hasLayer(labelsLayer)) context.map.removeLayer(labelsLayer);
+          }
+        }
+        context.map.on("zoomend", updateLabelsVisibility);
+        updateLabelsVisibility();
+      }
+
+      function popupHtml(story, countryMajorEvents) {
         const safeTitle = story.title || "Untitled story";
         const safeUrl = story.url || "#";
-        const source = story.source || "unknown";
+        const readerUrl = toReaderUrl(safeUrl);
+        const source = sourceMeta(story.source);
+        const topicKey = classifyStoryTopic(story);
+        const topic = TOPIC_META[topicKey] || TOPIC_META.other;
         const published = story.published_at || "unknown date";
         const summary = truncate(story.summary || "");
+        const country = story.country || "Unknown";
+        const eventKey = normalizeCountryKey(country);
+        const countryEvent = (countryMajorEvents || {})[eventKey] || null;
+        const linkedTitle = countryEvent?.linked_title || `${majorEventSignal(story)} in ${country}`;
+        const briefEventSummary = countryEvent?.brief_summary || summary;
+        const sourceHeadline = countryEvent?.source_headline || safeTitle;
         return `
           <div>
-            <div><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeTitle}</a></div>
-            <div class="muted">${source} - ${published}</div>
-            <p>${summary}</p>
+            <div><a href="${readerUrl}" target="_blank" rel="noopener noreferrer">${linkedTitle}</a></div>
+            <div class="muted popup-source">${sourceIconHtml(story.source, topicKey)} <span>${source.name} - ${published} - ${topic.label}</span></div>
+            <p>${briefEventSummary}</p>
+            <div class="muted">Source: ${sourceHeadline}</div>
+            ${isXReportSource(story.source) ? `
+              <blockquote class="twitter-tweet" data-dnt="true">
+                <a href="${canonicalXUrl(safeUrl)}"></a>
+              </blockquote>
+            ` : ""}
+            ${!isXReportSource(story.source) ? videoEmbedHtml(story) : ""}
+            ${!getVideoEmbed(story) && story.related_video_url ? `
+              <div class="popup-related-video">
+                <span class="muted">Related video from social media</span>
+                ${relatedVideoEmbedHtml(story.related_video_url)}
+              </div>
+            ` : ""}
+            <div class="popup-ai-summary">
+              <button type="button" class="ai-summary-btn" data-title="${escapeAttr(safeTitle)}" data-summary="${escapeAttr((story.summary || "").slice(0, 2000))}" data-country="${escapeAttr(country)}" data-source="${escapeAttr(story.source || "")}">AI summary</button>
+              <div class="ai-summary-result" aria-live="polite"></div>
+            </div>
           </div>
         `;
       }
@@ -70,19 +1632,308 @@
           const response = await fetch("/api/stories");
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const stories = await response.json();
+          const filters = {
+            economics: isEconomicsStory,
+            geopolitics: isGeopoliticsStory,
+            conflicts: isConflictStory,
+            sports: isSportsStory
+          };
 
-          markerLayer.clearLayers();
-          stories.forEach((story) => {
-            if (typeof story.lat !== "number" || typeof story.lon !== "number") return;
-            const marker = L.marker([story.lat, story.lon]);
-            marker.bindPopup(popupHtml(story));
-            marker.addTo(markerLayer);
+          Object.keys(MAP_DEFS).forEach((mapKey) => {
+            const context = mapContexts[mapKey];
+            const filterFn = filters[mapKey];
+            const filtered = stories.filter((s) => filterFn(s));
+            const countryMajorEvents = buildCountryMajorEvents(filtered);
+            context.markerLayer.clearLayers();
+            const useLeaguePin = mapKey === "sports";
+            filtered.forEach((story) => {
+              if (typeof story.lat !== "number" || typeof story.lon !== "number") return;
+              const topicKey = classifyStoryTopic(story);
+              const icon = useLeaguePin
+                ? sportsMarkerIcon(getLeagueForStory(story))
+                : markerIcon(story.source, topicKey);
+              const marker = L.marker([story.lat, story.lon], { icon });
+              marker.bindPopup(popupHtml(story, countryMajorEvents));
+              marker.on("popupopen", () => {
+                if (window.twttr && window.twttr.widgets) {
+                  window.twttr.widgets.load();
+                }
+              });
+              marker.addTo(context.markerLayer);
+            });
           });
         } catch (error) {
           // Keep map visible even if API polling fails.
           console.error("Failed to refresh stories:", error);
         }
       }
+      function initMapContexts() {
+        Object.keys(MAP_DEFS).forEach((mapKey) => {
+          const mapId = MAP_DEFS[mapKey].mapId;
+          const m = L.map(mapId, {
+            zoomControl: false,
+            scrollWheelZoom: true,
+            doubleClickZoom: true,
+            touchZoom: true,
+            boxZoom: true,
+            keyboard: true,
+            minZoom: 2,
+            maxZoom: 19
+          }).setView([20, 0], 2);
+          L.control.zoom({ position: "topright" }).addTo(m);
+
+          const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>",
+            maxZoom: 19
+          });
+          const satellite = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+            attribution: "&copy; Esri",
+            maxZoom: 18
+          });
+          const terrain = L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+            attribution: "&copy; <a href=\"https://opentopomap.org\">OpenTopoMap</a>",
+            maxZoom: 17
+          });
+
+          osm.addTo(m);
+          const baseLayers = {
+            "Map": osm,
+            "Satellite": satellite,
+            "Terrain": terrain
+          };
+          L.control.layers(baseLayers, null, { position: "topright" }).addTo(m);
+          L.control.scale({ imperial: true }).addTo(m);
+
+          L.Control.Fullscreen = L.Control.extend({
+            onAdd: function () {
+              const div = L.DomUtil.create("div", "leaflet-control leaflet-control-fullscreen");
+              div.innerHTML = "\u29BF";
+              div.title = "Fullscreen";
+              L.DomEvent.disableClickPropagation(div);
+              L.DomEvent.on(div, "click", this._toggle, this);
+              document.addEventListener("fullscreenchange", () => {
+                div.innerHTML = document.fullscreenElement ? "\u2715" : "\u29BF";
+                div.title = document.fullscreenElement ? "Exit fullscreen" : "Fullscreen";
+              });
+              return div;
+            },
+            _toggle: function () {
+              const pane = document.querySelector(".map-pane");
+              if (!pane) return;
+              if (!document.fullscreenElement) {
+                pane.requestFullscreen?.();
+              } else {
+                document.exitFullscreen?.();
+              }
+            }
+          });
+          L.control.fullscreen = function (opts) { return new L.Control.Fullscreen(opts); };
+          L.control.fullscreen({ position: "bottomright" }).addTo(m);
+
+          const userLocationLayer = L.layerGroup().addTo(m);
+          L.Control.Locate = L.Control.extend({
+            onAdd: function (map) {
+              const div = L.DomUtil.create("div", "leaflet-control leaflet-control-locate");
+              div.innerHTML = "\u2316";
+              div.title = "My location";
+              L.DomEvent.disableClickPropagation(div);
+              L.DomEvent.on(div, "click", () => this._locate(map, div), this);
+              return div;
+            },
+            _locate: function (map, div) {
+              if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your browser.");
+                return;
+              }
+              const layer = map._userLocationLayer;
+              div.style.opacity = "0.6";
+              navigator.geolocation.getCurrentPosition(
+                function (pos) {
+                  const lat = pos.coords.latitude;
+                  const lng = pos.coords.longitude;
+                  map.flyTo([lat, lng], Math.max(10, map.getZoom()));
+                  if (layer) {
+                    layer.clearLayers();
+                    const circle = L.circleMarker([lat, lng], { radius: 8, color: "#1976d2", fillColor: "#42a5f5", fillOpacity: 0.8, weight: 2 });
+                    layer.addLayer(circle);
+                  }
+                  div.style.opacity = "1";
+                },
+                function () {
+                  alert("Unable to get your location.");
+                  div.style.opacity = "1";
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+              );
+            }
+          });
+          m._userLocationLayer = userLocationLayer;
+          L.control.locate = function (opts) { return new L.Control.Locate(opts); };
+          L.control.locate({ position: "bottomright" }).addTo(m);
+
+          mapContexts[mapKey] = {
+            map: m,
+            markerLayer: L.layerGroup().addTo(m),
+            countryLayer: null,
+            countryLayerIndex: {},
+            selectedCountryLayer: null
+          };
+        });
+      }
+
+      async function loadCountryGeoJsonOnce() {
+        const resp = await fetch("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json");
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        worldCountryGeoJson = await resp.json();
+        Object.values(mapContexts).forEach((context) => loadCountryBordersForContext(context));
+      }
+
+      function activateMapTab(mapKey) {
+        activeMapKey = mapKey;
+        document.querySelectorAll(".map-tab").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.mapKey === mapKey);
+        });
+        Object.keys(MAP_DEFS).forEach((key) => {
+          const el = document.getElementById(MAP_DEFS[key].mapId);
+          el.classList.toggle("active", key === mapKey);
+        });
+        const labelEl = document.getElementById("maps-dropdown-label");
+        if (labelEl && MAP_DEFS[mapKey]) labelEl.textContent = MAP_DEFS[mapKey].title;
+        const dd = document.getElementById("maps-dropdown");
+        if (dd) dd.classList.remove("open");
+        const trigger = document.getElementById("maps-dropdown-trigger");
+        if (trigger) trigger.setAttribute("aria-expanded", "false");
+        setTimeout(() => mapContexts[mapKey].map.invalidateSize(), 80);
+      }
+
+      function initMapsDropdown() {
+        const trigger = document.getElementById("maps-dropdown-trigger");
+        const panel = document.getElementById("maps-dropdown-panel");
+        const dd = document.getElementById("maps-dropdown");
+        const labelEl = document.getElementById("maps-dropdown-label");
+        if (!trigger || !panel || !dd) return;
+        if (labelEl && MAP_DEFS[activeMapKey]) labelEl.textContent = MAP_DEFS[activeMapKey].title;
+        trigger.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const isOpen = dd.classList.toggle("open");
+          trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        });
+        document.querySelectorAll(".map-tab").forEach((btn) => {
+          btn.addEventListener("click", () => activateMapTab(btn.dataset.mapKey));
+        });
+        document.addEventListener("click", (e) => {
+          if (!dd.contains(e.target)) {
+            dd.classList.remove("open");
+            trigger.setAttribute("aria-expanded", "false");
+          }
+        });
+      }
+
+      function enableDraggablePanel() {
+        const panel = document.getElementById("live-updates-panel");
+        const handle = document.getElementById("live-updates-drag-handle");
+        if (!panel || !handle || panel.classList.contains("sidebar-left")) return;
+
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+        let dragging = false;
+
+        function startDrag(event) {
+          dragging = true;
+          panel.style.right = "auto";
+          const rect = panel.getBoundingClientRect();
+          dragOffsetX = event.clientX - rect.left;
+          dragOffsetY = event.clientY - rect.top;
+          event.preventDefault();
+        }
+
+        handle.addEventListener("pointerdown", startDrag);
+        panel.addEventListener("pointerdown", (event) => {
+          const target = event.target;
+          if (!(target instanceof Element)) return;
+          if (target.closest("input, button, a, textarea, select")) return;
+          startDrag(event);
+        });
+
+        window.addEventListener("pointermove", (event) => {
+          if (!dragging) return;
+          const maxLeft = Math.max(0, window.innerWidth - panel.offsetWidth);
+          const maxTop = Math.max(0, window.innerHeight - panel.offsetHeight);
+          const left = Math.min(maxLeft, Math.max(0, event.clientX - dragOffsetX));
+          const top = Math.min(maxTop, Math.max(0, event.clientY - dragOffsetY));
+          panel.style.left = `${left}px`;
+          panel.style.top = `${top}px`;
+        });
+
+        window.addEventListener("pointerup", () => {
+          dragging = false;
+        });
+      }
+
+      renderSourcePanel();
+      initMapContexts();
+      enableDraggablePanel();
+      loadCountryGeoJsonOnce().catch((error) => {
+        console.error("Failed to load country borders:", error);
+      });
+      initMapsDropdown();
+      document.getElementById("country-search-btn").addEventListener("click", () => {
+        const input = document.getElementById("country-search-input");
+        searchAndOpenCountry(input.value);
+      });
+      document.getElementById("country-search-input").addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        searchAndOpenCountry(event.target.value);
+      });
+      document.getElementById("country-close-btn").addEventListener("click", () => {
+        document.getElementById("country-side-panel").classList.remove("open");
+      });
+
+      document.getElementById("country-ai-summary-btn").addEventListener("click", async () => {
+        const panel = document.getElementById("country-side-panel");
+        const resultEl = document.getElementById("country-ai-summary-result");
+        const country = (panel && panel.dataset.currentCountry) || "";
+        if (!country || !resultEl) return;
+        resultEl.textContent = "Loading…";
+        resultEl.className = "ai-summary-result loading";
+        try {
+          const summary = await fetchAiSummary("country", { country });
+          resultEl.textContent = summary;
+          resultEl.className = "ai-summary-result";
+        } catch (err) {
+          resultEl.textContent = err.message || "AI summary unavailable.";
+          resultEl.className = "ai-summary-result error";
+        }
+      });
+
+      document.addEventListener("click", async (e) => {
+        const btn = e.target.closest(".ai-summary-btn");
+        if (!btn || btn.id === "country-ai-summary-btn") return;
+        const popupContent = btn.closest(".leaflet-popup-content");
+        if (!popupContent) return;
+        const resultEl = popupContent.querySelector(".ai-summary-result");
+        if (!resultEl) return;
+        const title = btn.dataset.title || "";
+        const summary = btn.dataset.summary || "";
+        if (!title && !summary) return;
+        e.preventDefault();
+        resultEl.textContent = "Loading…";
+        resultEl.className = "ai-summary-result loading";
+        try {
+          const text = await fetchAiSummary("story", {
+            title,
+            summary,
+            country: btn.dataset.country || "",
+            source: btn.dataset.source || ""
+          });
+          resultEl.textContent = text;
+          resultEl.className = "ai-summary-result";
+        } catch (err) {
+          resultEl.textContent = err.message || "AI summary unavailable.";
+          resultEl.className = "ai-summary-result error";
+        }
+      });
 
       refreshStories();
       setInterval(refreshStories, 30000);
