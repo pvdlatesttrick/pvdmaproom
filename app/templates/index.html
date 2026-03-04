@@ -156,33 +156,6 @@
         display: flex;
         min-height: 0;
       }
-      .sidebar-left {
-        flex-shrink: 0;
-        width: 300px;
-        background: var(--live-panel);
-        border-right: 1px solid var(--live-border);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        z-index: 999;
-      }
-      .sidebar-left .panel-header {
-        padding: 12px 12px 8px;
-        border-bottom: 1px solid var(--live-border);
-        cursor: default;
-      }
-      .sidebar-left .panel-title {
-        margin: 0;
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: var(--live-text);
-      }
-      .sidebar-left #source-grid {
-        flex: 1;
-        overflow-y: auto;
-        padding: 8px 12px 12px;
-        align-content: flex-start;
-      }
       .map-shell {
         flex: 1;
         position: relative;
@@ -376,27 +349,6 @@
       }
       .panel-drag-hint {
         display: none;
-      }
-      .source-grid {
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-      }
-      .source-chip {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 0.7rem;
-        border: 1px solid var(--live-border);
-        border-radius: 999px;
-        padding: 2px 6px 2px 4px;
-        background: var(--live-bg);
-        color: var(--live-muted);
-      }
-      .source-chip img {
-        width: 10px;
-        height: 10px;
-        border-radius: 2px;
       }
       .source-icon {
         width: 10px;
@@ -645,12 +597,6 @@
         </div>
       </header>
       <div class="main-row">
-        <aside id="live-updates-panel" class="sidebar-left">
-          <div id="live-updates-drag-handle" class="panel-header">
-            <p class="panel-title">Live map updates</p>
-          </div>
-          <div id="source-grid" class="source-grid"></div>
-        </aside>
         <div class="map-shell">
           <div class="map-pane">
             <div id="map-economics" class="map-canvas active"></div>
@@ -753,6 +699,7 @@
         rudaw_english: { name: "Rudaw English", logo: "https://logo.clearbit.com/rudaw.net" },
         middle_east_eye: { name: "Middle East Eye", logo: "https://logo.clearbit.com/middleeasteye.net" },
         dw_world: { name: "DW World", logo: "https://cdn.simpleicons.org/deutschewelle/FFFFFF" },
+        abc_news: { name: "ABC News", logo: "https://cdn.simpleicons.org/abcnews/FFFFFF" },
         cnn: { name: "CNN", logo: "https://cdn.simpleicons.org/cnn/CC0000" },
         nbc: { name: "NBC News", logo: "https://cdn.simpleicons.org/nbc/F37021" },
         sky_news: { name: "Sky News", logo: "https://cdn.simpleicons.org/sky/0072C6" },
@@ -771,7 +718,10 @@
         espn_ncf: { name: "ESPN College Football", logo: "https://cdn.simpleicons.org/ncaa/CC0000" },
         espn_ncb: { name: "ESPN College Basketball", logo: "https://cdn.simpleicons.org/ncaa/CC0000" },
         espn_ncaa: { name: "ESPN NCAA", logo: "https://cdn.simpleicons.org/ncaa/CC0000" },
-        espn_tennis: { name: "ESPN Tennis", logo: "https://cdn.simpleicons.org/espn/FF0033" }
+        espn_tennis: { name: "ESPN Tennis", logo: "https://cdn.simpleicons.org/espn/FF0033" },
+        on3: { name: "On3", logo: "https://logo.clearbit.com/on3.com" },
+        nbcsports: { name: "NBC Sports", logo: "https://cdn.simpleicons.org/nbcsports/FFFFFF" },
+        the_athletic: { name: "The Athletic", logo: "https://logo.clearbit.com/theathletic.com" }
       };
       SOURCE_META.x_reutersworld = { name: "X @ReutersWorld", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
       SOURCE_META.x_bbcbreaking = { name: "X @BBCBreaking", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
@@ -898,6 +848,7 @@
       function isSportsStory(story) {
         const src = String(story.source || "").toLowerCase();
         if (src.startsWith("espn_")) return true;
+        if (["on3", "nbcsports", "the_athletic"].includes(src)) return true;
         const text = `${story.title || ""} ${story.summary || ""}`.toLowerCase();
         return /(nba|nfl|nhl|mlb|mls|playoffs?|super bowl|world series|stanley cup|finals?|mvp|quarterback|touchdown|home run|basketball|football|hockey|soccer|champions league|euroleague|eurobasket|fiba|college (football|basketball|baseball|tennis|lacrosse|soccer)|ncaa|shl|ahl|khl|liiga|extraliga|bsn|puerto rico (basketball|league)|cba|chinese basketball)/.test(text);
       }
@@ -1101,6 +1052,7 @@
           amnesty: "#111827",
           hrw: "#111827",
           aljazeera: "#0F172A",
+          abc_news: "#E41E22",
           rudaw_english: "#C41E3A",
           middle_east_eye: "#1a1a1a",
           dw_world: "#005B95",
@@ -1154,7 +1106,10 @@
           espn_ncf: "#CC0000",
           espn_ncb: "#CC0000",
           espn_ncaa: "#CC0000",
-          espn_tennis: "#FF0033"
+          espn_tennis: "#FF0033",
+          on3: "#1a1a1a",
+          nbcsports: "#F37021",
+          the_athletic: "#1a1a1a"
         };
         const bg = bgBySource[String(sourceKey || "").toLowerCase()] || "#1f2937";
         return `
@@ -1199,19 +1154,6 @@
           iconAnchor: [7, 19],
           popupAnchor: [0, -16]
         });
-      }
-
-      function renderSourcePanel() {
-        const grid = document.getElementById("source-grid");
-        grid.innerHTML = Object.keys(SOURCE_META).map((key) => {
-          const meta = SOURCE_META[key];
-          return `
-            <div class="source-chip">
-              <img src="${meta.logo}" alt="${meta.name} logo" referrerpolicy="no-referrer" />
-              <span>${meta.name}</span>
-            </div>
-          `;
-        }).join("");
       }
 
       function countryStyle() {
@@ -1870,7 +1812,6 @@
         });
       }
 
-      renderSourcePanel();
       initMapContexts();
       enableDraggablePanel();
       loadCountryGeoJsonOnce().catch((error) => {
@@ -1902,7 +1843,7 @@
           resultEl.textContent = summary;
           resultEl.className = "ai-summary-result";
         } catch (err) {
-          resultEl.textContent = err.message || "AI summary unavailable.";
+          resultEl.textContent = err.message || "AI summary unavailable (set OPENAI_API_KEY on the server).";
           resultEl.className = "ai-summary-result error";
         }
       });
@@ -1930,7 +1871,7 @@
           resultEl.textContent = text;
           resultEl.className = "ai-summary-result";
         } catch (err) {
-          resultEl.textContent = err.message || "AI summary unavailable.";
+          resultEl.textContent = err.message || "AI summary unavailable (set OPENAI_API_KEY on the server).";
           resultEl.className = "ai-summary-result error";
         }
       });

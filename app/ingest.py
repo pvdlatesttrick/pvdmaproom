@@ -71,6 +71,9 @@ INVALID_PLACE_TERMS = {
     "jamestown",
     "rudaw",
     "middle east eye",
+    "abc",
+    "on3",
+    "the athletic",
     "axios",
     "wsj",
     "washington post",
@@ -156,8 +159,12 @@ SOURCE_DEFAULT_COUNTRY = {
     "gov_australia_pm": "Australia",
     "gov_australia_rba": "Australia",
     "gov_new_zealand_beehive": "New Zealand",
+    "abc_news": "United States",
     "cnn": "United States",
     "nbc": "United States",
+    "on3": "United States",
+    "nbcsports": "United States",
+    "the_athletic": "United States",
     "sky_news": "United Kingdom",
     "espn_news": "United States",
     "espn_nfl": "United States",
@@ -509,9 +516,13 @@ def _priority_score(story: dict[str, Any]) -> int:
         "hrw",
         "aljazeera",
         "dw_world",
+        "abc_news",
         "cnn",
         "nbc",
         "sky_news",
+        "on3",
+        "nbcsports",
+        "the_athletic",
         "espn_news",
         "espn_nfl",
         "espn_nba",
@@ -593,7 +604,10 @@ def _is_highly_relevant(story: dict[str, Any], country: str, place: str) -> bool
     # allow slightly lower lexical threshold to avoid missing key Russia/war updates.
     if country and any(term in text for term in MAJOR_ISSUE_TERMS):
         score += 1
-    if SOURCE_DEFAULT_COUNTRY.get(str(story.get("source", "")).lower(), "") == country:
+    default_country = SOURCE_DEFAULT_COUNTRY.get(str(story.get("source", "")).lower(), "")
+    if default_country and normalize_country_name(default_country) == country_norm:
+        score += 2
+    elif default_country and default_country == country:
         score += 2
 
     return score >= 2

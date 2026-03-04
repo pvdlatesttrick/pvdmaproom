@@ -102,6 +102,10 @@ When a story’s location cannot be resolved from the text, ingest can call an L
 
 If the key is not set, ingest skips the model step and only adds stories that geocode successfully.
 
+## AI summary (optional)
+
+The “AI summary” button (country panel and story popups) uses the same OpenAI-compatible API. If you see “AI summary unavailable,” set **`OPENAI_API_KEY`** in your deployment environment. On **Render**: Dashboard → your web service → **Environment** → Add variable `OPENAI_API_KEY` with your key. Optional: `OPENAI_BASE_URL` for a different endpoint; `SUMMARY_MODEL` (defaults to `LOCATION_MODEL` or `gpt-4o-mini`).
+
 ## CIA Factbook data
 
 By default ingestion downloads Factbook JSON from:

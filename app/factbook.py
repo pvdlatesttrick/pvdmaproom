@@ -20,7 +20,13 @@ def normalize_country_name(name: str) -> str:
     lowered = re.sub(r"\bu\.s\.\b", "united states", lowered)
     lowered = re.sub(r"\bus\b", "united states", lowered)
     lowered = re.sub(r"[^a-z0-9 ]+", " ", lowered)
-    return re.sub(r"\s+", " ", lowered).strip()
+    lowered = re.sub(r"\s+", " ", lowered).strip()
+    # Canonicalize common variants so country panel and ingest match (e.g. USA).
+    if lowered in ("united states of america", "usa"):
+        return "united states"
+    if "united kingdom" in lowered and ("great britain" in lowered or "northern ireland" in lowered or lowered == "uk"):
+        return "united kingdom"
+    return lowered
 
 
 def _format_number(value: Any) -> str | None:

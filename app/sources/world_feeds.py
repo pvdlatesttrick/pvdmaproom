@@ -82,6 +82,7 @@ WORLD_FEEDS: list[dict[str, str]] = [
     {"source": "rudaw_english", "feed_url": "https://www.rudaw.net/english/rss"},
     {"source": "middle_east_eye", "feed_url": "https://www.middleeasteye.net/rss"},
     {"source": "dw_world", "feed_url": "https://rss.dw.com/rdf/rss-en-world"},
+    {"source": "abc_news", "feed_url": "https://feeds.abcnews.com/abcnews/internationalheadlines"},
     {"source": "cnn", "feed_url": "https://rss.cnn.com/rss/edition_world.rss"},
     {"source": "nbc", "feed_url": "https://link.nbcnews.com/rss.xml"},
     {"source": "sky_news", "feed_url": "https://feeds.skynews.com/feeds/rss/world.xml"},
@@ -112,6 +113,10 @@ WORLD_FEEDS: list[dict[str, str]] = [
     {"source": "espn_ncb", "feed_url": "https://www.espn.com/espn/rss/ncb/news"},
     {"source": "espn_ncaa", "feed_url": "https://www.espn.com/espn/rss/ncaa/news"},
     {"source": "espn_tennis", "feed_url": "https://www.espn.com/espn/rss/tennis/news"},
+    # Additional sports (Sports map)
+    {"source": "on3", "feed_url": "https://www.on3.com/feed/"},
+    {"source": "nbcsports", "feed_url": "https://www.nbcsports.com/feed/"},
+    {"source": "the_athletic", "feed_url": "https://theathletic.com/rss-feed/"},
 ]
 MAX_STORIES_PER_FEED = 200
 

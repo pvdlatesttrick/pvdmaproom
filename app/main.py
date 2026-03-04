@@ -95,7 +95,9 @@ def create_app() -> Flask:
         else:
             return jsonify({"error": "type must be 'country' or 'story'"}), 400
         if summary_text is None:
-            return jsonify({"error": "AI summary unavailable (check OPENAI_API_KEY)"}), 503
+            return jsonify({
+                "error": "AI summary unavailable. Set OPENAI_API_KEY in your deployment environment (e.g. Render: Dashboard → Service → Environment)."
+            }), 503
         return jsonify({"summary": summary_text})
 
     return app
