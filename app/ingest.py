@@ -172,7 +172,7 @@ SOURCE_DEFAULT_COUNTRY = {
     "ft": "United Kingdom",  # Financial Times
     "guardian": "United Kingdom",
     "aljazeera": None,  # Pan-Middle East
-    "dw":" Germany",
+
     "france24": "France",
     "tass": "Russia",
     "rt": "Russia",
