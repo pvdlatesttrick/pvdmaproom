@@ -1,5 +1,4 @@
 """Flask application factory and routes."""
-
 from __future__ import annotations
 
 import logging
@@ -105,7 +104,7 @@ def create_app() -> Flask:
         )
         if reply is None:
             return jsonify({
-                "error": "Chat unavailable. In Render: open your pvdmaproom service → Environment (Environment Variables) → Add OPENAI_API_KEY with your OpenAI key."
+                "error": "Chat unavailable. Set GROQ_API_KEY (free at console.groq.com) or OPENAI_API_KEY in your Render service Environment Variables."
             }), 503
         return jsonify({"reply": reply})
 
@@ -118,7 +117,7 @@ def create_app() -> Flask:
 
     @app.post("/api/ai-summary")
     def api_ai_summary():
-        """Return an AI summary for a country or a story. Requires OPENAI_API_KEY."""
+        """Return an AI summary for a country or a story. Requires GROQ_API_KEY or OPENAI_API_KEY."""
         data = request.get_json(silent=True) or {}
         kind = (data.get("type") or "").strip().lower()
         if kind == "country":
@@ -148,9 +147,8 @@ def create_app() -> Flask:
             return jsonify({"error": "type must be 'country' or 'story'"}), 400
         if summary_text is None:
             return jsonify({
-                "error": "AI summary unavailable. In Render: open your pvdmaproom service → Environment (Environment Variables) → Add OPENAI_API_KEY with your OpenAI key."
+                "error": "AI summary unavailable. Set GROQ_API_KEY (free at console.groq.com) or OPENAI_API_KEY in your Render service Environment Variables."
             }), 503
         return jsonify({"summary": summary_text})
 
     return app
-
