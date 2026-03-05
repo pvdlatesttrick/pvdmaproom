@@ -11,7 +11,7 @@ Beginner-friendly project that plots news stories on a live world map.
 - Additional regional feeds are included for Africa and the Middle East
 - Stories are stored in SQLite; the same story can appear in multiple countries when relevant
 - Place names are guessed with a stricter heuristic and geocoded with cache. If location cannot be inferred, an optional **LLM** (OpenAI-compatible API) can infer relevant countries so the story is added to the map only where it is relevant
-- Source logos are shown in map markers and in each story popup
+- Source logos are shown in map markers and in each story popup. Economist, Washington Post, and NYT use `/static/logos/economist.png`, `washingtonpost.png`, `nyt.png` if present; otherwise a CDN fallback is used (and all marker images have an `onerror` fallback to a generic icon)
 - Story popups include CIA World Factbook fields for the resolved country (capital, population, GDP PPP, area, government type)
 - Country borders are clickable; clicking a country highlights it and opens a side panel with CIA facts plus Economist and recent country stories
 - Country side panel title shows original/local country name with English in parentheses
@@ -22,7 +22,9 @@ Beginner-friendly project that plots news stories on a live world map.
 - `app/ingest.py` - ingestion command (`python -m app.ingest`)
 - `app/db.py` - SQLite setup and queries
 - `app/sources/` - source-specific fetchers
-- `app/templates/index.html` - Leaflet frontend
+- `app/templates/index.html` - Page structure and map containers
+- `app/static/map.css` - Map and UI styles (extracted from index)
+- `app/static/map.js` - Map logic, sources, and controls (extracted from index)
 
 ## Run with Docker (recommended)
 
@@ -36,9 +38,7 @@ docker compose up --build
 
 `http://localhost:8000`
 
-3. **Ingest runs automatically** when the app starts (in a background thread), so the map will fill with stories after a minute or two. To run ingest manually (e.g. to refresh data):  
-   `docker compose run --rm web python -m app.ingest`  
-   Or trigger it via **POST** `/api/ingest` (blocks until ingest completes, then returns `{"status": "completed", "mapped_story_count": N}`).
+3. **Ingest runs automatically** when the app starts (in a background thread), and **every 45 minutes** via APScheduler so pins stay fresh. To trigger ingest manually: **POST** `/api/ingest` (starts ingest in background; returns immediately). Poll **GET** `/api/ingest-status` for `status`, `mapped_story_count`, and `last_completed_at`. Or run once locally: `docker compose run --rm web python -m app.ingest`.
 
 4. Refresh browser. Markers should appear (the page also auto-polls every 30s).
 
@@ -53,8 +53,8 @@ To get a **public URL** that works from anywhere (not just localhost):
 3. Connect your GitHub account and select the `pvdmaproom` repo.
 4. Render will use the repo’s `render.yaml` (build and start commands). Click **Create Web Service**.
 5. After the first deploy, your map will be at a URL like **`https://pvdmaproom.onrender.com`** (or the name you gave the service). Use that link to open the map from any device.
-6. **Stories load automatically**: ingest runs in the background when the app starts, so the map will populate shortly after deploy. On Render’s free tier the disk is **ephemeral** (DB resets on restart), so each deploy/restart triggers a fresh ingest. To refresh data without restarting, call **POST** `/api/ingest` (e.g. from a cron job or manually).  
-   **Optional**: set `NYT_API_KEY` in Render’s Environment (Dashboard → your service → Environment) to pull **NYT Top Stories (World)** from the NYT API in addition to the NYT World RSS feed. Without it, NYT still appears via RSS; with it you get more NYT stories on the map.
+6. **Stories load automatically**: ingest runs in the background at startup and **every 45 minutes** via APScheduler. On Render’s free tier the disk is **ephemeral** (DB is wiped on redeploy). For persistent data across deploys, add a [Render Disk](https://render.com/docs/disks) (paid) and set `DB_PATH` to a path on that disk, or migrate to a hosted Postgres (e.g. Neon, Supabase) with SQLAlchemy. To trigger ingest manually: **POST** `/api/ingest` (async); poll **GET** `/api/ingest-status` for progress.  
+   **Optional**: set `NYT_API_KEY` in Render’s Environment to pull **NYT Top Stories (World)** from the NYT API. Without it, NYT still appears via RSS.
 
 ### Option B: ngrok (quick tunnel from your machine)
 
@@ -126,7 +126,7 @@ If the map loads but shows no markers:
    Open **GET** `https://your-app.onrender.com/api/status` (or your deploy URL). It returns `mapped_story_count`, `db_path`, and `db_exists`. If `mapped_story_count` is 0, ingest has not populated the DB yet or failed.
 
 2. **Trigger ingest**  
-   Call **POST** `https://your-app.onrender.com/api/ingest` (e.g. in a new tab or with `curl -X POST https://...`). It blocks until ingest finishes, then returns `{"status": "completed", "mapped_story_count": N}`. If you get a 500 or the count stays 0, ingest is failing.
+   Call **POST** `https://your-app.onrender.com/api/ingest`. It starts ingest in the background and returns `{"status": "started", ...}`. Poll **GET** `/api/ingest-status` for `status` (`running` / `idle`), `mapped_story_count`, and `last_error`. If the count stays 0 after status is `idle`, check `last_error` and Render logs.
 
 3. **Check Render logs**  
    In the Render dashboard → your service → **Logs**, search for `Ingest finished` or `Background ingest`. You should see e.g. `Ingest finished: 150 mapped stories`. If you see `Background ingest failed:` and an exception, that explains missing pins (e.g. RSS/network errors, DB path, or relevance/geocoding logic).

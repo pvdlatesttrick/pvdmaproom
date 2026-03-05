@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import re
+import time
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from typing import Any
@@ -447,7 +448,7 @@ def _get_geocoder() -> Nominatim:
 
 
 def _geocode_place(geocoder: Nominatim, place: str) -> tuple[float, float, str | None] | None:
-    """Geocode with persistent cache to avoid duplicate requests."""
+    """Geocode with persistent cache. Rate-limit: 1 req/s for Nominatim (uncached only)."""
     cached = get_cached_geocode(place)
     if cached is not None:
         return cached
@@ -468,6 +469,7 @@ def _geocode_place(geocoder: Nominatim, place: str) -> tuple[float, float, str |
     )
 
     set_cached_geocode(place, coords[0], coords[1], country)
+    time.sleep(1)  # Nominatim usage policy: max 1 request per second
     return coords[0], coords[1], country
 
 
@@ -490,7 +492,7 @@ def _resolve_story_location(
             return explicit_country, coords[0], coords[1], coords[2] or explicit_country
 
     # Keep geocoding bounded to avoid very slow ingest runs.
-    
+    for candidate in _guess_place_candidates(story)[:5]:
         coords = _geocode_place(geocoder, candidate)
         if coords is not None:
             return candidate, coords[0], coords[1], coords[2]
@@ -828,7 +830,13 @@ def run_ingest() -> None:
         # Location could not be resolved: use model to infer relevant countries and add only there.
         try:
             countries = infer_relevant_countries(story)
-        except Exception:
+        except Exception as e:
+            logging.getLogger(__name__).warning(
+                "infer_relevant_countries failed for %s: %s",
+                story.get("url", "")[:80],
+                e,
+                exc_info=False,
+            )
             countries = []
         for country_name in countries[:5]:
             if not (country_name and country_name.strip()):

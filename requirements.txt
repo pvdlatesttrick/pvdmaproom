@@ -1,3 +1,4 @@
+APScheduler>=3.10.0
 Flask
 feedparser
 geopy

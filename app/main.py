@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import logging
+import os
 import threading
-from pathlib import Path
+from datetime import datetime, timezone
 
-from flask import Flask, abort, jsonify, render_template, request, send_file
+from flask import Flask, jsonify, render_template, request
 
 from app.ai_summary import summarize_country, summarize_story
 from app.chat import chat as chat_reply
@@ -13,18 +14,13 @@ from app.db import get_country_detail, get_stories, get_db_path, get_total_mappe
 from app.ingest import run_ingest
 from app.isw_frontlines import ISW_FRONTLINES_GEOJSON
 
-SOURCE_LOGO_FILES = {
-    # User-provided logo assets.
-    "economist": Path(
-        "/Users/petervandixhoorn/.cursor/projects/Users-petervandixhoorn-Coding-nhlstats-app-static/assets/image-bb397791-72a7-4dcc-b408-c5afa5c5b6dd.png"
-    ),
-    "washingtonpost": Path(
-        "/Users/petervandixhoorn/.cursor/projects/Users-petervandixhoorn-Coding-nhlstats-app-static/assets/image-c2c5b252-df01-4a59-9904-96d65f8737d2.png"
-    ),
-    "nyt": Path(
-        "/Users/petervandixhoorn/.cursor/projects/Users-petervandixhoorn-Coding-nhlstats-app-static/assets/image-18e73cc2-e4ab-494a-802e-f8a37375ae7b.png"
-    ),
-}
+# Optional features: log at startup so deploy logs show what's available.
+def _log_optional_features() -> None:
+    log = logging.getLogger(__name__)
+    if not os.environ.get("OPENAI_API_KEY", "").strip():
+        log.warning("OPENAI_API_KEY not set: AI summary, AI titles, and PVD chat will return 503.")
+    if not os.environ.get("NYT_API_KEY", "").strip():
+        log.info("NYT_API_KEY not set: NYT Top Stories API disabled; RSS still used for NYT.")
 
 
 def create_app() -> Flask:
@@ -33,16 +29,51 @@ def create_app() -> Flask:
 
     # Ensure DB tables exist before first request.
     init_db()
+    _log_optional_features()
 
-    def _run_ingest_and_log():
+    # Ingest state for async ingest and polling (single-threaded; one ingest at a time).
+    _ingest_lock = threading.Lock()
+    _ingest_state = {"running": False, "last_completed_at": None, "last_mapped_count": 0, "last_error": None}
+
+    def _run_ingest_and_log() -> None:
+        with _ingest_lock:
+            if _ingest_state["running"]:
+                return
+            _ingest_state["running"] = True
+            _ingest_state["last_error"] = None
         try:
             run_ingest()
             n = get_total_mapped_story_count()
+            with _ingest_lock:
+                _ingest_state["last_completed_at"] = datetime.now(timezone.utc).isoformat()
+                _ingest_state["last_mapped_count"] = n
             logging.getLogger(__name__).info("Background ingest finished: %s mapped stories", n)
         except Exception as e:
+            with _ingest_lock:
+                _ingest_state["last_error"] = str(e)
             logging.getLogger(__name__).exception("Background ingest failed: %s", e)
+        finally:
+            with _ingest_lock:
+                _ingest_state["running"] = False
+
+    def _start_ingest_if_idle() -> bool:
+        with _ingest_lock:
+            if _ingest_state["running"]:
+                return False
+        threading.Thread(target=_run_ingest_and_log, daemon=True).start()
+        return True
 
     threading.Thread(target=_run_ingest_and_log, daemon=True).start()
+
+    # Scheduled re-ingest every 45 minutes so pins stay fresh when the service stays up.
+    try:
+        from apscheduler.schedulers.background import BackgroundScheduler
+        scheduler = BackgroundScheduler()
+        scheduler.add_job(lambda: threading.Thread(target=_run_ingest_and_log, daemon=True).start(), "interval", minutes=45, id="ingest")
+        scheduler.start()
+        logging.getLogger(__name__).info("Scheduler started: re-ingest every 45 minutes.")
+    except ImportError:
+        logging.getLogger(__name__).warning("APScheduler not installed; no scheduled re-ingest.")
 
     @app.get("/")
     def index():
@@ -66,13 +97,21 @@ def create_app() -> Flask:
 
     @app.post("/api/ingest")
     def api_ingest():
-        """Trigger ingest (blocks until complete; can take minutes). Returns mapped count after run."""
-        try:
-            run_ingest()
-            count = get_total_mapped_story_count()
-            return jsonify({"status": "completed", "mapped_story_count": count})
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+        """Start ingest in background. Poll GET /api/ingest-status for progress."""
+        if not _start_ingest_if_idle():
+            return jsonify({"status": "running", "message": "Ingest already in progress. Poll GET /api/ingest-status."})
+        return jsonify({"status": "started", "message": "Ingest running. Poll GET /api/ingest-status for progress."})
+
+    @app.get("/api/ingest-status")
+    def api_ingest_status():
+        """Return current ingest state for polling (no blocking)."""
+        with _ingest_lock:
+            return jsonify({
+                "status": "running" if _ingest_state["running"] else "idle",
+                "mapped_story_count": get_total_mapped_story_count(),
+                "last_completed_at": _ingest_state.get("last_completed_at"),
+                "last_error": _ingest_state.get("last_error"),
+            })
 
     @app.get("/api/country")
     def api_country():
@@ -107,13 +146,6 @@ def create_app() -> Flask:
                 "error": "Chat unavailable. Set GROQ_API_KEY (free at console.groq.com) or OPENAI_API_KEY in your Render service Environment Variables."
             }), 503
         return jsonify({"reply": reply})
-
-    @app.get("/api/source-logo/<source_key>")
-    def api_source_logo(source_key: str):
-        path = SOURCE_LOGO_FILES.get(source_key.strip().lower())
-        if path is None or not path.exists():
-            abort(404)
-        return send_file(path)
 
     @app.post("/api/ai-summary")
     def api_ai_summary():
