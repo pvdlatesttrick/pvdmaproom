@@ -979,7 +979,7 @@ function searchAndOpenCountry(rawQuery) {
 function storyCardHtml(story) {
   const title = story.title || "Untitled";
   const url = story.url || "#";
-  const readerUrl = toReaderUrl(url);
+  const readerUrl = toBestReaderUrl(url, story.source);
   const source = sourceMeta(story.source);
   const published = story.published_at || "";
   return `
@@ -1037,9 +1037,14 @@ function relatedVideoEmbedHtml(videoUrl) {
   return "";
 }
 
-function toReaderUrl(url) {
+function toBestReaderUrl(url, sourceKey) {
   const raw = String(url || "").trim();
   if (!raw || raw === "#") return "#";
+  const paywalled = ["wsj", "economist", "economist_asia", "economist_mea",
+    "economist_graphic_detail", "washingtonpost", "nyt"];
+  if (paywalled.includes(String(sourceKey || "").toLowerCase())) {
+    return `https://archive.ph/newest/${raw}`;
+  }
   const stripped = raw.replace(/^https?:\/\//i, "");
   return `https://r.jina.ai/http://${stripped}`;
 }
@@ -1384,7 +1389,7 @@ function loadBordersForYear(year) {
 function popupHtml(story, countryMajorEvents) {
   const safeTitle = story.title || "Untitled story";
   const safeUrl = story.url || "#";
-  const readerUrl = toReaderUrl(safeUrl);
+  const readerUrl = toBestReaderUrl(safeUrl, story.source);
   const source = sourceMeta(story.source);
   const topicKey = classifyStoryTopic(story);
   const topic = TOPIC_META[topicKey] || TOPIC_META.other;
@@ -1397,9 +1402,13 @@ function popupHtml(story, countryMajorEvents) {
   const briefEventSummary = countryEvent?.brief_summary || summary;
   const sourceHeadline = countryEvent?.source_headline || safeTitle;
   const newBadge = isStoryNew(story.published_at) ? '<span class="popup-new-badge" title="Published in the last 2 hours">NEW</span>' : '';
+  const paywalled = ["wsj", "economist", "economist_asia", "economist_mea", "economist_graphic_detail", "washingtonpost", "nyt"];
+  const archiveLink = paywalled.includes(String(story.source || "").toLowerCase())
+    ? ` <a href="https://archive.ph/newest/${safeUrl}" target="_blank" rel="noopener noreferrer" style="font-size:0.75em; opacity:0.6; margin-left:6px;">archive</a>`
+    : "";
   return `
     <div>
-      <div>${newBadge}<a href="${readerUrl}" target="_blank" rel="noopener noreferrer">${linkedTitle}</a></div>
+      <div>${newBadge}<a href="${readerUrl}" target="_blank" rel="noopener noreferrer">${linkedTitle}</a>${archiveLink}</div>
       <div class="muted popup-source">${sourceIconHtml(story.source, topicKey)} <span>${source.name} - ${published} - ${topic.label}</span></div>
       <p>${briefEventSummary}</p>
       <div class="muted">Source: ${sourceHeadline}</div>
