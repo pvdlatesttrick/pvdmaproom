@@ -38,7 +38,7 @@ docker compose up --build
 
 3. **Ingest runs automatically** when the app starts (in a background thread), so the map will fill with stories after a minute or two. To run ingest manually (e.g. to refresh data):  
    `docker compose run --rm web python -m app.ingest`  
-   Or trigger it via **POST** `/api/ingest` (returns 202 immediately; ingest runs in background).
+   Or trigger it via **POST** `/api/ingest` (blocks until ingest completes, then returns `{"status": "completed", "mapped_story_count": N}`).
 
 4. Refresh browser. Markers should appear (the page also auto-polls every 30s).
 
@@ -117,6 +117,22 @@ You can override this with:
 ```bash
 export CIA_FACTBOOK_URL="https://your-factbook-json-url"
 ```
+
+## Debugging: no pins on the map
+
+If the map loads but shows no markers:
+
+1. **Check backend count**  
+   Open **GET** `https://your-app.onrender.com/api/status` (or your deploy URL). It returns `mapped_story_count`, `db_path`, and `db_exists`. If `mapped_story_count` is 0, ingest has not populated the DB yet or failed.
+
+2. **Trigger ingest**  
+   Call **POST** `https://your-app.onrender.com/api/ingest` (e.g. in a new tab or with `curl -X POST https://...`). It blocks until ingest finishes, then returns `{"status": "completed", "mapped_story_count": N}`. If you get a 500 or the count stays 0, ingest is failing.
+
+3. **Check Render logs**  
+   In the Render dashboard → your service → **Logs**, search for `Ingest finished` or `Background ingest`. You should see e.g. `Ingest finished: 150 mapped stories`. If you see `Background ingest failed:` and an exception, that explains missing pins (e.g. RSS/network errors, DB path, or relevance/geocoding logic).
+
+4. **DB path**  
+   Default is `/data/app.db`. On Render the disk is ephemeral; the app creates `/data` and the DB at startup. If you set `DB_PATH` in Environment, ensure the parent directory exists or the app can create it.
 
 ## Local run (without Docker)
 

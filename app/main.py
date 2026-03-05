@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import threading
 from pathlib import Path
 
@@ -9,7 +10,7 @@ from flask import Flask, abort, jsonify, render_template, request, send_file
 
 from app.ai_summary import summarize_country, summarize_story
 from app.chat import chat as chat_reply
-from app.db import get_country_detail, get_stories, init_db
+from app.db import get_country_detail, get_stories, get_db_path, get_total_mapped_story_count, init_db
 from app.ingest import run_ingest
 from app.isw_frontlines import ISW_FRONTLINES_GEOJSON
 
@@ -33,7 +34,16 @@ def create_app() -> Flask:
 
     # Ensure DB tables exist before first request.
     init_db()
-    threading.Thread(target=run_ingest, daemon=True).start()
+
+    def _run_ingest_and_log():
+        try:
+            run_ingest()
+            n = get_total_mapped_story_count()
+            logging.getLogger(__name__).info("Background ingest finished: %s mapped stories", n)
+        except Exception as e:
+            logging.getLogger(__name__).exception("Background ingest failed: %s", e)
+
+    threading.Thread(target=_run_ingest_and_log, daemon=True).start()
 
     @app.get("/")
     def index():
@@ -43,12 +53,25 @@ def create_app() -> Flask:
     def api_stories():
         return jsonify(get_stories())
 
+    @app.get("/api/status")
+    def api_status():
+        """Return mapped story count and DB path so you can confirm the backend has pins."""
+        import os
+        db_path = get_db_path()
+        count = get_total_mapped_story_count()
+        return jsonify({
+            "mapped_story_count": count,
+            "db_path": db_path,
+            "db_exists": os.path.isfile(db_path),
+        })
+
     @app.post("/api/ingest")
     def api_ingest():
-        """Trigger ingest (blocks until complete; can take minutes)."""
+        """Trigger ingest (blocks until complete; can take minutes). Returns mapped count after run."""
         try:
             run_ingest()
-            return jsonify({"status": "completed"})
+            count = get_total_mapped_story_count()
+            return jsonify({"status": "completed", "mapped_story_count": count})
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 

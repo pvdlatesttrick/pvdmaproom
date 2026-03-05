@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import re
 from datetime import datetime, timezone
@@ -14,6 +15,7 @@ from geopy.geocoders import Nominatim
 
 from app.db import (
     get_cached_geocode,
+    get_db_path,
     get_story_count_by_country,
     get_total_mapped_story_count,
     init_db,
@@ -851,6 +853,13 @@ def run_ingest() -> None:
             fact = lookup_country_fact(factbook_index, country)
             if fact is not None:
                 upsert_country_fact(fact)
+
+    count = get_total_mapped_story_count()
+    logging.getLogger(__name__).info(
+        "Ingest finished: %s mapped stories (db_path=%s)",
+        count,
+        get_db_path(),
+    )
 
 
 if __name__ == "__main__":
