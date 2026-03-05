@@ -779,7 +779,7 @@
       <div id="chat-panel" class="chat-panel" aria-hidden="true">
         <div class="chat-panel-header">
           <h3 class="chat-panel-title"><span class="pvd-logo" aria-hidden="true"><svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="pvd-hair-panel" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#f0e0a0"/><stop offset="100%" style="stop-color:#d4a84b"/></linearGradient></defs><circle cx="20" cy="22" r="12" fill="#f5d0b0"/><path d="M8 14 Q8 8 20 6 Q32 8 32 14 L32 20 Q32 24 20 26 Q8 24 8 20 Z" fill="url(#pvd-hair-panel)"/><ellipse cx="16" cy="21" rx="2" ry="2.2" fill="#2c1810"/><ellipse cx="24" cy="21" rx="2" ry="2.2" fill="#2c1810"/><path d="M14 28 Q20 32 26 28" stroke="#c49070" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></span>PVD</h3>
-          <p class="chat-panel-desc">Ask PVD anything about the map. Answers use data from WSJ, The Economist, Hudson Institute, AEI, The Dispatch and other sources. On Render: set OPENAI_API_KEY in your service’s Environment Variables for chat to work.</p>
+          <p class="chat-panel-desc">Ask PVD anything about the map. Answers use data from WSJ, The Economist, Hudson Institute, AEI, The Dispatch and other sources. On Render: set GROQ_API_KEY in your service’s Environment Variables for chat to work.</p>
           <button id="chat-close-btn" class="chat-close-btn" type="button" aria-label="Close chat">×</button>
         </div>
         <div id="chat-messages" class="chat-messages" role="log"></div>
@@ -2165,7 +2165,7 @@
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
-              appendMessage("assistant", data.error || "Chat unavailable. In Render: open your pvdmaproom service → Environment → Add OPENAI_API_KEY with your OpenAI key.", true);
+              appendMessage("assistant", data.error || "Chat unavailable. In Render: open your pvdmaproom service → Environment → Add GROQ_API_KEY with your OpenAI key.", true);
               return;
             }
             if (data.reply) appendMessage("assistant", data.reply);
@@ -2229,7 +2229,7 @@
           resultEl.textContent = summary;
           resultEl.className = "ai-summary-result";
         } catch (err) {
-          resultEl.textContent = err.message || "AI summary unavailable (set OPENAI_API_KEY on the server).";
+          resultEl.textContent = err.message || "AI summary unavailable (set GROQ_API_KEY on the server).";
           resultEl.className = "ai-summary-result error";
         }
       });
@@ -2257,7 +2257,7 @@
           resultEl.textContent = text;
           resultEl.className = "ai-summary-result";
         } catch (err) {
-          resultEl.textContent = err.message || "AI summary unavailable (set OPENAI_API_KEY on the server).";
+          resultEl.textContent = err.message || "AI summary unavailable (set GROQ_API_KEY on the server).";
           resultEl.className = "ai-summary-result error";
         }
       });
