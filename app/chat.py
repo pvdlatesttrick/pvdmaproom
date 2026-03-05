@@ -1,19 +1,36 @@
 """
 AI chatbot for the map: answers questions using ingested articles and think-tank data.
 Aligns with the analytical perspective of WSJ, The Economist, Hudson Institute, AEI, The Dispatch.
+Supports OpenAI (OPENAI_API_KEY) or Groq free tier (GROQ_API_KEY) automatically.
 """
-
 from __future__ import annotations
-
 import logging
 import os
 from typing import Any
 
 log = logging.getLogger(__name__)
 
-CHAT_MODEL = os.getenv("CHAT_MODEL", os.getenv("SUMMARY_MODEL", "gpt-4o-mini")).strip()
+# --- API key resolution ---
+# Priority: OPENAI_API_KEY > GROQ_API_KEY
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "").strip()
+
+# Resolve which key and base URL to use
+if OPENAI_API_KEY:
+    _ACTIVE_KEY = OPENAI_API_KEY
+    _ACTIVE_BASE_URL = OPENAI_BASE_URL or None
+    _DEFAULT_MODEL = "gpt-4o-mini"
+elif GROQ_API_KEY:
+    _ACTIVE_KEY = GROQ_API_KEY
+    _ACTIVE_BASE_URL = "https://api.groq.com/openai/v1"
+    _DEFAULT_MODEL = "llama-3.3-70b-versatile"
+else:
+    _ACTIVE_KEY = ""
+    _ACTIVE_BASE_URL = None
+    _DEFAULT_MODEL = "gpt-4o-mini"
+
+CHAT_MODEL = os.getenv("CHAT_MODEL", os.getenv("SUMMARY_MODEL", _DEFAULT_MODEL)).strip()
 
 # Preferred sources for context and alignment (include more of these in context).
 PREFERRED_SOURCES = frozenset({
@@ -24,23 +41,21 @@ PREFERRED_SOURCES = frozenset({
 })
 
 SYSTEM_PROMPT = """You are PVD, an analyst answering questions about current events and the world using the map's data. You have access to recent headlines and summaries from news outlets, think tanks, and publications.
-
 Use only the provided "Recent reporting and data" below to inform your answers. Cite which source or region a point comes from when relevant. Give clear insights and opinions.
-
 Your analysis should align with the perspective of outlets such as the Wall Street Journal, The Economist, the Hudson Institute, the American Enterprise Institute, and The Dispatch: fact-based, supportive of free markets and strong institutions, skeptical of government overreach, and attentive to geopolitical and economic risks. Be concise but substantive. If the user asks about a specific country or topic, focus on that; otherwise draw on the most relevant items in the data. If asked who you are, say you are PVD."""
 
 
 def _client():
     """Return OpenAI-compatible client or None if not configured."""
-    if not OPENAI_API_KEY:
+    if not _ACTIVE_KEY:
         return None
     try:
         import openai
     except ImportError:
         return None
-    kwargs: dict[str, Any] = {"api_key": OPENAI_API_KEY}
-    if OPENAI_BASE_URL:
-        kwargs["base_url"] = OPENAI_BASE_URL
+    kwargs: dict[str, Any] = {"api_key": _ACTIVE_KEY}
+    if _ACTIVE_BASE_URL:
+        kwargs["base_url"] = _ACTIVE_BASE_URL
     return openai.OpenAI(**kwargs)
 
 
@@ -51,7 +66,6 @@ def _prioritize_stories_for_chat(stories: list[dict[str, Any]]) -> list[dict[str
         preferred = 0 if src in PREFERRED_SOURCES else 1
         pub = (s.get("published_at") or "")[:20]
         return (preferred, pub)
-
     return sorted(stories, key=key)
 
 
@@ -92,7 +106,6 @@ def chat(
     client = _client()
     if not client:
         return None
-
     prioritized = _prioritize_stories_for_chat(stories)
     context = _build_context_from_stories(prioritized)
     map_note = ""
@@ -100,9 +113,7 @@ def chat(
         map_note = f"\nCurrent map view: {map_key}."
     if country:
         map_note += f" User may be interested in: {country}."
-
     user_content = f"Recent reporting and data from the map:\n\n{context}\n\n---\nUser question:{map_note}\n\n{user_message.strip()}"
-
     try:
         resp = client.chat.completions.create(
             model=CHAT_MODEL,
