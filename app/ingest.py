@@ -258,7 +258,7 @@ TEAM_TEXT_TO_KEY_AND_SPORT: list[tuple[re.Pattern[str], str, str]] = [
 ]
 # Source-based topic shortcuts: skip model when source is clearly single-topic.
 CONFLICT_SOURCE_KEYS = frozenset({
-    "x_isw", "x_liveuamap",
+    "x_isw", "x_liveuamap", "x_visegrad24",
     "substack_rochan", "substack_counteroffensive", "substack_warwickpowell", "substack_professorbonk",
 })
 ECONOMICS_SOURCE_KEYS = frozenset({
@@ -853,7 +853,7 @@ def _priority_score(story: dict[str, Any]) -> int:
         "x_isw", "x_liveuamap", "x_carnegie", "x_hudson",
         "x_barakravid", "x_clarissaward", "x_richardengel", "x_lynsaddler",
         "x_nickpatonwalsh", "x_borzsandor", "x_ianbremmer",
-        "x_rudaw", "x_middleeasteye", "x_kurdistan24",
+        "x_rudaw", "x_middleeasteye", "x_kurdistan24", "x_visegrad24",
     }:
         score += 4
     if source.startswith("x_"):

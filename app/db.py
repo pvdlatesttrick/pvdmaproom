@@ -23,7 +23,7 @@ POPULAR_SOURCES = frozenset({
     "substack_jamestown", "substack_rochan", "substack_counteroffensive",
     "x_barakravid", "x_clarissaward", "x_richardengel", "x_lynsaddler",
     "x_nickpatonwalsh", "x_borzsandor", "x_ianbremmer",
-    "x_rudaw", "x_middleeasteye", "x_kurdistan24",
+    "x_rudaw", "x_middleeasteye", "x_kurdistan24", "x_visegrad24",
     "rudaw_english", "middle_east_eye",
     "substack_warwickpowell", "substack_professorbonk",
     "espn_news", "espn_nfl", "espn_nba", "espn_mlb", "espn_nhl", "espn_soccer",

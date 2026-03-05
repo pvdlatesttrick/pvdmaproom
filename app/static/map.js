@@ -140,6 +140,7 @@ SOURCE_META.x_ianbremmer = { name: "Ian Bremmer", logo: "https://cdn.simpleicons
 SOURCE_META.x_rudaw = { name: "Rudaw (X)", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
 SOURCE_META.x_middleeasteye = { name: "Middle East Eye (X)", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
 SOURCE_META.x_kurdistan24 = { name: "Kurdistan 24 (X)", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
+SOURCE_META.x_visegrad24 = { name: "Visegrad 24", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
 SOURCE_META.carnegie = { name: "Carnegie Endowment", logo: "https://logo.clearbit.com/carnegieendowment.org" };
 SOURCE_META.aei = { name: "American Enterprise Institute", logo: "https://logo.clearbit.com/aei.org" };
 SOURCE_META.hudson = { name: "Hudson Institute", logo: "https://logo.clearbit.com/hudson.org" };
@@ -316,9 +317,9 @@ function isGeopoliticsStory(story) {
 function isConflictStory(story) {
   const src = String(story.source || "").toLowerCase();
   if (src === "wikipedia_historical") return true;
-  if (src === "x_isw" || src === "x_liveuamap") return true;
+  if (src === "x_isw" || src === "x_liveuamap" || src === "x_visegrad24") return true;
   if (["substack_rochan", "substack_counteroffensive", "substack_warwickpowell", "substack_professorbonk"].includes(src)) return true;
-  if (["x_barakravid", "x_clarissaward", "x_richardengel", "x_lynsaddler", "x_nickpatonwalsh", "x_borzsandor", "x_ianbremmer", "x_rudaw", "x_middleeasteye", "x_kurdistan24"].includes(src)) return true;
+  if (["x_barakravid", "x_clarissaward", "x_richardengel", "x_lynsaddler", "x_nickpatonwalsh", "x_borzsandor", "x_ianbremmer", "x_rudaw", "x_middleeasteye", "x_kurdistan24", "x_visegrad24"].includes(src)) return true;
   if (["rudaw_english", "middle_east_eye"].includes(src)) return true;
   const text = `${story.title || ""} ${story.summary || ""}`.toLowerCase();
   return /(war|conflict|civil war|separat|insurg|militia|cartel|organized crime|armed group|junta|ceasefire|offensive|airstrike|rebel)/.test(text);
@@ -650,6 +651,7 @@ function sourceIconHtml(sourceKey, topicKey = "other") {
     x_rudaw: "#000000",
     x_middleeasteye: "#000000",
     x_kurdistan24: "#000000",
+    x_visegrad24: "#000000",
     carnegie: "#C41230",
     aei: "#1a365d",
     hudson: "#0d47a1",
