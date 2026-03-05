@@ -82,7 +82,7 @@ def create_app() -> Flask:
         )
         if reply is None:
             return jsonify({
-                "error": "Chat unavailable. Set OPENAI_API_KEY in your deployment environment."
+                "error": "Chat unavailable. In Render: open your pvdmaproom service → Environment (Environment Variables) → Add OPENAI_API_KEY with your OpenAI key."
             }), 503
         return jsonify({"reply": reply})
 
@@ -125,7 +125,7 @@ def create_app() -> Flask:
             return jsonify({"error": "type must be 'country' or 'story'"}), 400
         if summary_text is None:
             return jsonify({
-                "error": "AI summary unavailable. Set OPENAI_API_KEY in your deployment environment (e.g. Render: Dashboard → Service → Environment)."
+                "error": "AI summary unavailable. In Render: open your pvdmaproom service → Environment (Environment Variables) → Add OPENAI_API_KEY with your OpenAI key."
             }), 503
         return jsonify({"summary": summary_text})
 

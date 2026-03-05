@@ -331,6 +331,37 @@ def get_stories(limit: int = 500) -> list[dict[str, Any]]:
     return stories
 
 
+def get_story_count_by_country() -> dict[str, int]:
+    """Return normalized country name -> number of stories (excludes World). For ingest prioritization."""
+    from app.factbook import normalize_country_name
+    with get_connection() as conn:
+        rows = conn.execute(
+            """
+            SELECT country, COUNT(*) AS cnt FROM stories
+            WHERE country IS NOT NULL AND country != '' AND country != 'World'
+            GROUP BY country
+            """
+        ).fetchall()
+    counts: dict[str, int] = {}
+    for row in rows:
+        norm = normalize_country_name(row["country"] or "")
+        if norm:
+            counts[norm] = counts.get(norm, 0) + row["cnt"]
+    return counts
+
+
+def get_total_mapped_story_count() -> int:
+    """Total number of stories pinned to a country (excludes World)."""
+    with get_connection() as conn:
+        row = conn.execute(
+            """
+            SELECT COUNT(*) AS n FROM stories
+            WHERE country IS NOT NULL AND country != '' AND country != 'World'
+            """
+        ).fetchone()
+    return row["n"] if row else 0
+
+
 def get_cached_geocode(place: str) -> tuple[float, float, str | None] | None:
     """Read geocode cache by place string."""
     with get_connection() as conn:

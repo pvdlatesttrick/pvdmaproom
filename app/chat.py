@@ -18,6 +18,7 @@ OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "").strip()
 # Preferred sources for context and alignment (include more of these in context).
 PREFERRED_SOURCES = frozenset({
     "wsj", "economist", "economist_asia", "economist_mea", "economist_graphic_detail",
+    "economist_podcast",
     "hudson", "aei", "dispatch",
     "x_hudson", "x_carnegie",
 })

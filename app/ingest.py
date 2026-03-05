@@ -14,6 +14,8 @@ from geopy.geocoders import Nominatim
 
 from app.db import (
     get_cached_geocode,
+    get_story_count_by_country,
+    get_total_mapped_story_count,
     init_db,
     set_cached_geocode,
     upsert_article_related_video,
@@ -35,6 +37,7 @@ from app.location_inference import infer_relevant_countries
 from app.sources.world_feeds import fetch_all_world_sources
 from app.sources.x_reports import fetch_verified_x_reports
 from app.sources.nyt import fetch_nyt_top_stories
+from app.sources.economist_podcast import fetch_economist_podcast
 
 MAX_INGEST_STORIES = 5000
 # Regex patterns for simple place extraction.
@@ -513,10 +516,27 @@ def _sanitize_story(story: dict[str, Any]) -> dict[str, Any] | None:
     }
 
 
+# Primary news sources: process first to maximize map coverage from trusted outlets.
+_PRIMARY_NEWS_SOURCES = frozenset({
+    "bbc", "bbc_asia", "bbc_africa", "bbc_middle_east",
+    "reuters", "economist", "economist_asia", "economist_mea",
+    "nyt", "washingtonpost", "wsj", "guardian_world", "guardian_international",
+    "aljazeera", "axios", "politico", "dispatch", "dw_world", "abc_news",
+    "cnn", "nbc", "sky_news",
+    "espn_news", "espn_nfl", "espn_nba", "espn_mlb", "espn_nhl", "espn_soccer",
+    "espn_ncf", "espn_ncb", "espn_ncaa", "espn_tennis",
+    "on3", "nbcsports", "the_athletic",
+})
+
+
 def _priority_score(story: dict[str, Any]) -> int:
-    """Score stories so underreported regions/conflicts are prioritized."""
+    """Score stories so news sources and underreported regions are prioritized."""
     text = f"{story.get('title', '')} {story.get('summary', '')}".lower()
     score = 0
+
+    source = str(story.get("source", "")).lower()
+    if source in _PRIMARY_NEWS_SOURCES:
+        score += 8
 
     for term in UNDER_REPORTED_PRIORITY_TERMS:
         if term in text:
@@ -528,7 +548,6 @@ def _priority_score(story: dict[str, Any]) -> int:
         if term in text:
             score += 2
 
-    source = str(story.get("source", "")).lower()
     if source in {
         "bbc_africa",
         "bbc_middle_east",
@@ -597,9 +616,11 @@ def _rank_and_limit_stories(stories: list[dict[str, Any]]) -> list[dict[str, Any
     return ranked[:MAX_INGEST_STORIES]
 
 
-def _is_highly_relevant(story: dict[str, Any], country: str, place: str) -> bool:
+def _is_highly_relevant(
+    story: dict[str, Any], country: str, place: str, min_score: int = 2
+) -> bool:
     """
-    Require strong country/place relevance before pinning.
+    Require country/place relevance before pinning. min_score=1 for broader coverage (e.g. empty countries).
     """
     text = f"{story.get('title', '')} {story.get('summary', '')}".lower()
     country_norm = normalize_country_name(country)
@@ -638,7 +659,7 @@ def _is_highly_relevant(story: dict[str, Any], country: str, place: str) -> bool
     elif default_country and default_country == country:
         score += 2
 
-    return score >= 2
+    return score >= min_score
 
 
 def _canonical_x_url(url: str) -> str:
@@ -745,20 +766,57 @@ def run_ingest() -> None:
     except Exception:
         # Continue without X reports when mirrors are unavailable.
         pass
+    try:
+        raw_incoming.extend(fetch_economist_podcast())
+    except Exception:
+        pass
     incoming = [s for s in (_sanitize_story(x) for x in raw_incoming) if s is not None]
     incoming = _rank_and_limit_stories(incoming)
 
+    # Prioritize coverage: prefer countries with no pins; ensure minimum 100 pins.
+    initial_counts = get_story_count_by_country()
+    initial_total = get_total_mapped_story_count()
+    added_this_run: dict[str, int] = {}
+    total_added = 0
+
+    def _min_score_for(country: str) -> int:
+        norm = normalize_country_name(country)
+        if not norm:
+            return 2
+        pins_in_country = initial_counts.get(norm, 0) + added_this_run.get(norm, 0)
+        total_pins = initial_total + total_added
+        if pins_in_country == 0 or total_pins < 100:
+            return 1
+        return 2
+
+    def _record_added(country: str) -> None:
+        nonlocal total_added
+        norm = normalize_country_name(country)
+        if norm:
+            added_this_run[norm] = added_this_run.get(norm, 0) + 1
+        total_added += 1
+
     for story in incoming:
+        if story.get("source") == "economist_podcast":
+            story["place"] = "World"
+            story["country"] = "World"
+            story["lat"] = 20.0
+            story["lon"] = 0.0
+            _ensure_display_title(story)
+            upsert_story(story)
+            continue
         resolved = _resolve_story_location(geocoder, story, country_patterns)
         if resolved is not None:
             place, lat, lon, country = resolved
-            if country and _is_highly_relevant(story, country, place):
+            min_score = _min_score_for(country)
+            if country and _is_highly_relevant(story, country, place, min_score=min_score):
                 story["place"] = place
                 story["country"] = country
                 story["lat"] = lat
                 story["lon"] = lon
                 _ensure_display_title(story)
                 upsert_story(story)
+                _record_added(country)
                 _record_article_video_links_if_x(story)
                 fact = lookup_country_fact(factbook_index, country)
                 if fact is not None:
@@ -783,10 +841,12 @@ def run_ingest() -> None:
             story["country"] = country
             story["lat"] = lat
             story["lon"] = lon
-            if not _is_highly_relevant(story, country, country_name):
+            min_score = _min_score_for(country)
+            if not _is_highly_relevant(story, country, country_name, min_score=min_score):
                 continue
             _ensure_display_title(story)
             upsert_story(story)
+            _record_added(country)
             _record_article_video_links_if_x(story)
             fact = lookup_country_fact(factbook_index, country)
             if fact is not None:
