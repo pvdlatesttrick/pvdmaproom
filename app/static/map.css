@@ -126,6 +126,25 @@ html, body {
   color: var(--live-muted);
   font-weight: 600;
 }
+.border-year-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.border-year-wrap .year-select-label {
+  font-size: 0.75rem;
+  color: var(--live-muted);
+  white-space: nowrap;
+}
+.year-select {
+  padding: 4px 6px;
+  font-size: 0.8125rem;
+  background: var(--live-panel);
+  border: 1px solid var(--live-border);
+  border-radius: 4px;
+  color: var(--live-text);
+  min-width: 4.5rem;
+}
 .maps-dropdown-panel {
   position: absolute;
   top: 100%;

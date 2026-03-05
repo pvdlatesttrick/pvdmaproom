@@ -46,5 +46,20 @@
   {"team_key": "georgia-bulldogs-football", "stadium_name": "Sanford Stadium", "lat": 33.9490, "lon": -83.3735, "city": "Athens", "country": "United States"},
   {"team_key": "texas-longhorns-football", "stadium_name": "Darrell K Royal-Texas Memorial Stadium", "lat": 30.2836, "lon": -97.7325, "city": "Austin", "country": "United States"},
   {"team_key": "michigan-wolverines-football", "stadium_name": "Michigan Stadium", "lat": 42.2658, "lon": -83.7495, "city": "Ann Arbor", "country": "United States"},
-  {"team_key": "clemson-tigers-football", "stadium_name": "Memorial Stadium", "lat": 34.6789, "lon": -82.8403, "city": "Clemson", "country": "United States"}
+  {"team_key": "clemson-tigers-football", "stadium_name": "Memorial Stadium", "lat": 34.6789, "lon": -82.8403, "city": "Clemson", "country": "United States"},
+  {"team_key": "florida-gators-football", "stadium_name": "Ben Hill Griffin Stadium", "lat": 29.6505, "lon": -82.3498, "city": "Gainesville", "country": "United States"},
+  {"team_key": "tennessee-volunteers-football", "stadium_name": "Neyland Stadium", "lat": 35.955, "lon": -83.925, "city": "Knoxville", "country": "United States"},
+  {"team_key": "penn-state-nittany-lions-football", "stadium_name": "Beaver Stadium", "lat": 40.8121, "lon": -77.8555, "city": "State College", "country": "United States"},
+  {"team_key": "oklahoma-sooners-football", "stadium_name": "Gaylord Family Oklahoma Memorial Stadium", "lat": 35.2058, "lon": -97.4437, "city": "Norman", "country": "United States"},
+  {"team_key": "florida-state-seminoles-football", "stadium_name": "Doak Campbell Stadium", "lat": 30.4419, "lon": -84.3045, "city": "Tallahassee", "country": "United States"},
+  {"team_key": "oregon-ducks-football", "stadium_name": "Autzen Stadium", "lat": 44.0582, "lon": -123.0746, "city": "Eugene", "country": "United States"},
+  {"team_key": "usc-trojans-football", "stadium_name": "Los Angeles Memorial Coliseum", "lat": 34.0142, "lon": -118.2879, "city": "Los Angeles", "country": "United States"},
+  {"team_key": "texas-am-aggies-football", "stadium_name": "Kyle Field", "lat": 30.6102, "lon": -96.34, "city": "College Station", "country": "United States"},
+  {"team_key": "nebraska-cornhuskers-football", "stadium_name": "Memorial Stadium", "lat": 40.8207, "lon": -96.7056, "city": "Lincoln", "country": "United States"},
+  {"team_key": "wisconsin-badgers-football", "stadium_name": "Camp Randall Stadium", "lat": 43.0704, "lon": -89.412, "city": "Madison", "country": "United States"},
+  {"team_key": "miami-hurricanes-football", "stadium_name": "Hard Rock Stadium", "lat": 25.958, "lon": -80.2389, "city": "Miami Gardens", "country": "United States"},
+  {"team_key": "north-carolina-tar-heels-football", "stadium_name": "Kenan Stadium", "lat": 35.9092, "lon": -79.0514, "city": "Chapel Hill", "country": "United States"},
+  {"team_key": "virginia-tech-hokies-football", "stadium_name": "Lane Stadium", "lat": 37.2204, "lon": -80.4176, "city": "Blacksburg", "country": "United States"},
+  {"team_key": "washington-huskies-football", "stadium_name": "Husky Stadium", "lat": 47.6502, "lon": -122.3017, "city": "Seattle", "country": "United States"},
+  {"team_key": "oklahoma-state-cowboys-football", "stadium_name": "Boone Pickens Stadium", "lat": 36.1272, "lon": -97.0656, "city": "Stillwater", "country": "United States"}
 ]

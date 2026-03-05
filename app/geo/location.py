@@ -22,6 +22,46 @@ from app.geo.stadiums import get_stadium_for_team
 
 log = logging.getLogger(__name__)
 
+
+def _country_name_to_iso2(country_name: str) -> str | None:
+    """Resolve country name to ISO 3166-1 alpha-2 (e.g. US, DE). Returns None if not found."""
+    if not (country_name and isinstance(country_name, str)):
+        return None
+    s = country_name.strip()
+    if len(s) == 2 and s.isalpha():
+        return s.upper()
+    key = s.lower().replace(",", "").strip()
+    _common: dict[str, str] = {
+        "united states": "US", "united states of america": "US", "usa": "US",
+        "united kingdom": "GB", "great britain": "GB", "uk": "GB",
+        "germany": "DE", "france": "FR", "japan": "JP", "china": "CN",
+        "brazil": "BR", "india": "IN", "canada": "CA", "australia": "AU",
+        "russia": "RU", "italy": "IT", "spain": "ES", "south korea": "KR",
+        "mexico": "MX", "indonesia": "ID", "netherlands": "NL", "turkey": "TR",
+    }
+    if key in _common:
+        return _common[key]
+    try:
+        import pycountry
+        c = pycountry.countries.get(name=s)
+        if not c:
+            matches = pycountry.countries.search_fuzzy(s)
+            c = matches[0] if matches else None
+        return c.alpha_2 if c else None
+    except Exception:
+        return None
+
+
+def _is_country_name(place_name: str) -> bool:
+    """True if place_name is likely a country name (so geocode result without city = country-only)."""
+    if not (place_name and place_name.strip()):
+        return False
+    key = place_name.strip().lower().replace(",", "").strip()
+    if len(key) == 2 and key.isalpha():
+        return True
+    return _country_name_to_iso2(place_name) is not None
+
+
 # Source -> country hint for geocoding (no import from ingest to avoid circular deps).
 SOURCE_COUNTRY_HINT: dict[str, str | None] = {
     "espn_nfl": "United States", "espn_nba": "United States", "espn_mlb": "United States",
@@ -37,6 +77,21 @@ SOURCE_COUNTRY_HINT: dict[str, str | None] = {
 TEAM_MENTION_TO_KEY: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\bnew orleans saints\b|\bsaints\b", re.I), "new-orleans-saints"),
     (re.compile(r"\blsu\b", re.I), "lsu-tigers-football"),
+    (re.compile(r"\bflorida gators\b|\bgators\b", re.I), "florida-gators-football"),
+    (re.compile(r"\btennessee volunteers\b|\bvolunteers\b", re.I), "tennessee-volunteers-football"),
+    (re.compile(r"\bpenn state\b|\bnittany lions\b", re.I), "penn-state-nittany-lions-football"),
+    (re.compile(r"\boklahoma sooners\b|\bsooners\b", re.I), "oklahoma-sooners-football"),
+    (re.compile(r"\bflorida state\b|\bseminoles\b", re.I), "florida-state-seminoles-football"),
+    (re.compile(r"\boregon ducks\b|\bducks\b.*(?:oregon|college)", re.I), "oregon-ducks-football"),
+    (re.compile(r"\busc trojans\b|\btrojans\b.*(?:usc|southern cal)", re.I), "usc-trojans-football"),
+    (re.compile(r"\btexas a&m\b|\baggies\b", re.I), "texas-am-aggies-football"),
+    (re.compile(r"\bnebraska cornhuskers\b|\bcornhuskers\b", re.I), "nebraska-cornhuskers-football"),
+    (re.compile(r"\bwisconsin badgers\b|\bbadgers\b", re.I), "wisconsin-badgers-football"),
+    (re.compile(r"\bmiami hurricanes\b|\bhurricanes\b.*(?:miami|acc)", re.I), "miami-hurricanes-football"),
+    (re.compile(r"\bnorth carolina tar heels\b|\btar heels\b", re.I), "north-carolina-tar-heels-football"),
+    (re.compile(r"\bvirginia tech\b|\bhokies\b", re.I), "virginia-tech-hokies-football"),
+    (re.compile(r"\bwashington huskies\b|\bhuskies\b.*(?:washington|pac)", re.I), "washington-huskies-football"),
+    (re.compile(r"\boklahoma state\b", re.I), "oklahoma-state-cowboys-football"),
     (re.compile(r"\blakers\b", re.I), "los-angeles-lakers"),
     (re.compile(r"\bceltics\b", re.I), "boston-celtics"),
     (re.compile(r"\bcowboys\b", re.I), "dallas-cowboys"),
@@ -198,7 +253,7 @@ def attach_location(story: dict[str, Any]) -> dict[str, Any]:
     story['country'], story['region'], story['city'], story['place_name']
     using topic-aware geocoding. Does not geocode person names.
     """
-    # 1. Sports fast-path: use team/stadium
+    # 1. Sports fast-path: use team/stadium (city-level)
     if _is_sports_story(story):
         loc = stadium_location_from_story(story)
         if loc:
@@ -207,6 +262,8 @@ def attach_location(story: dict[str, Any]) -> dict[str, Any]:
             story["place_name"] = loc.get("stadium_name") or loc.get("city") or ""
             story["city"] = loc.get("city")
             story["country"] = loc.get("country") or "United States"
+            story["country_code"] = _country_name_to_iso2(story["country"]) or "US"
+            story["location_type"] = "city"
             story["region"] = None
             if not story.get("place"):
                 story["place"] = story.get("place_name") or story.get("city") or story.get("country")
@@ -249,19 +306,40 @@ def attach_location(story: dict[str, Any]) -> dict[str, Any]:
     # 4. Country hint
     country_hint = derive_country_hint(story, entities)
 
-    # 5. Geocode first successful candidate
+    # 5. Geocode first successful candidate; classify city vs country-only
     for name in dedup[:8]:
         result = geocode_place(name, country_hint=country_hint)
         if not result:
             continue
-        story["lat"] = result["lat"]
-        story["lon"] = result["lon"]
-        story["country"] = result.get("country")
-        story["region"] = result.get("region")
-        story["city"] = result.get("city")
-        story["place_name"] = result.get("display_name", name)
-        if not story.get("place"):
-            story["place"] = story.get("place_name") or name
-        return story
+        country_name = result.get("country")
+        country_code = _country_name_to_iso2(country_name) if country_name else None
+        city = result.get("city")
+        region = result.get("region")
+        has_city_or_region = bool(city and str(city).strip()) or bool(region and str(region).strip())
+        is_country_place = _is_country_name(name)
+        if has_city_or_region or not is_country_place:
+            story["lat"] = result["lat"]
+            story["lon"] = result["lon"]
+            story["country"] = country_name
+            story["country_code"] = country_code
+            story["location_type"] = "city"
+            story["region"] = region
+            story["city"] = city
+            story["place_name"] = result.get("display_name", name)
+            if not story.get("place"):
+                story["place"] = story.get("place_name") or name
+            return story
+        else:
+            story["lat"] = None
+            story["lon"] = None
+            story["country"] = country_name
+            story["country_code"] = country_code
+            story["location_type"] = "country"
+            story["city"] = None
+            story["region"] = region
+            story["place_name"] = None
+            if not story.get("place"):
+                story["place"] = country_name or name
+            return story
 
     return story

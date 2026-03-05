@@ -152,12 +152,77 @@ def init_db() -> None:
             conn.execute("ALTER TABLE stories ADD COLUMN team_home TEXT NULL")
         if not _has_column(conn, "stories", "team_away"):
             conn.execute("ALTER TABLE stories ADD COLUMN team_away TEXT NULL")
+        if not _has_column(conn, "stories", "location_type"):
+            conn.execute("ALTER TABLE stories ADD COLUMN location_type TEXT NULL")
+        if not _has_column(conn, "stories", "city"):
+            conn.execute("ALTER TABLE stories ADD COLUMN city TEXT NULL")
+        if not _has_column(conn, "stories", "country_code"):
+            conn.execute("ALTER TABLE stories ADD COLUMN country_code TEXT NULL")
+        _migrate_stories_nullable_lat_lon(conn)
+        if not _has_column(conn, "stories", "pvd_score"):
+            conn.execute("ALTER TABLE stories ADD COLUMN pvd_score REAL NULL")
+        if not _has_column(conn, "stories", "content_type"):
+            conn.execute("ALTER TABLE stories ADD COLUMN content_type TEXT NULL")
         conn.commit()
 
 
 def _has_column(conn: sqlite3.Connection, table: str, column: str) -> bool:
     rows = conn.execute(f"PRAGMA table_info({table})").fetchall()
     return any(row["name"] == column for row in rows)
+
+
+def _migrate_stories_nullable_lat_lon(conn: sqlite3.Connection) -> None:
+    """Recreate stories so lat/lon can be NULL (country-only stories). Run after location_type/city/country_code exist."""
+    row = conn.execute(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name='stories'"
+    ).fetchone()
+    if not row or not row[0]:
+        return
+    if "lat REAL NULL" in row[0].replace("  ", " "):
+        return
+    conn.execute(
+        """
+        CREATE TABLE stories_nullable_lat (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source TEXT NOT NULL,
+            title TEXT NOT NULL,
+            url TEXT NOT NULL,
+            summary TEXT NOT NULL,
+            published_at TEXT NOT NULL,
+            place TEXT NULL,
+            lat REAL NULL,
+            lon REAL NULL,
+            created_at TEXT NOT NULL,
+            country TEXT NULL,
+            display_title TEXT NULL,
+            topic TEXT NULL,
+            sport TEXT NULL,
+            league TEXT NULL,
+            team_home TEXT NULL,
+            team_away TEXT NULL,
+            location_type TEXT NULL,
+            city TEXT NULL,
+            country_code TEXT NULL,
+            UNIQUE(url, country)
+        )
+        """
+    )
+    conn.execute(
+        """
+        INSERT INTO stories_nullable_lat (
+            id, source, title, url, summary, published_at, place, lat, lon, created_at,
+            country, display_title, topic, sport, league, team_home, team_away,
+            location_type, city, country_code
+        )
+        SELECT
+            id, source, title, url, summary, published_at, place, lat, lon, created_at,
+            country, display_title, topic, sport, league, team_home, team_away,
+            location_type, city, country_code
+        FROM stories
+        """
+    )
+    conn.execute("DROP TABLE stories")
+    conn.execute("ALTER TABLE stories_nullable_lat RENAME TO stories")
 
 
 def _migrate_stories_url_country_unique(conn: sqlite3.Connection) -> None:
@@ -200,7 +265,7 @@ def _migrate_stories_url_country_unique(conn: sqlite3.Connection) -> None:
 
 
 def upsert_story(story: dict[str, Any]) -> None:
-    """Insert or update a story by (URL, country) so the same story can appear in multiple countries."""
+    """Insert or update a story by (URL, country). Supports country-only stories (lat/lon NULL)."""
     country = story.get("country") or ""
     display_title = (story.get("display_title") or "").strip() or None
     topic = (story.get("topic") or "").strip() or None
@@ -208,12 +273,27 @@ def upsert_story(story: dict[str, Any]) -> None:
     league = (story.get("league") or "").strip() or None
     team_home = (story.get("team_home") or "").strip() or None
     team_away = (story.get("team_away") or "").strip() or None
+    location_type = (story.get("location_type") or "").strip() or None
+    city = (story.get("city") or "").strip() or None
+    country_code = (story.get("country_code") or "").strip() or None
+    content_type = (story.get("content_type") or "").strip() or None
+    pvd_score = story.get("pvd_score")
+    if pvd_score is not None and not isinstance(pvd_score, (int, float)):
+        pvd_score = None
+    lat = story.get("lat")
+    lon = story.get("lon")
+    if lat is not None and not isinstance(lat, (int, float)):
+        lat = None
+    if lon is not None and not isinstance(lon, (int, float)):
+        lon = None
     with get_connection() as conn:
         conn.execute(
             """
             INSERT INTO stories (
-                source, title, url, summary, published_at, place, country, lat, lon, created_at, display_title, topic, sport, league, team_home, team_away
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                source, title, url, summary, published_at, place, country, lat, lon, created_at,
+                display_title, topic, sport, league, team_home, team_away,
+                location_type, city, country_code, pvd_score, content_type
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(url, country) DO UPDATE SET
                 source = excluded.source,
                 title = excluded.title,
@@ -227,7 +307,12 @@ def upsert_story(story: dict[str, Any]) -> None:
                 sport = COALESCE(excluded.sport, stories.sport),
                 league = COALESCE(excluded.league, stories.league),
                 team_home = COALESCE(excluded.team_home, stories.team_home),
-                team_away = COALESCE(excluded.team_away, stories.team_away)
+                team_away = COALESCE(excluded.team_away, stories.team_away),
+                location_type = COALESCE(excluded.location_type, stories.location_type),
+                city = COALESCE(excluded.city, stories.city),
+                country_code = COALESCE(excluded.country_code, stories.country_code),
+                pvd_score = COALESCE(excluded.pvd_score, stories.pvd_score),
+                content_type = COALESCE(excluded.content_type, stories.content_type)
             """,
             (
                 story["source"],
@@ -237,8 +322,8 @@ def upsert_story(story: dict[str, Any]) -> None:
                 story["published_at"],
                 story.get("place"),
                 country,
-                story["lat"],
-                story["lon"],
+                lat,
+                lon,
                 _utc_now_iso(),
                 display_title,
                 topic,
@@ -246,6 +331,11 @@ def upsert_story(story: dict[str, Any]) -> None:
                 league,
                 team_home,
                 team_away,
+                location_type,
+                city,
+                country_code,
+                pvd_score,
+                content_type,
             ),
         )
         conn.commit()
@@ -381,6 +471,11 @@ def get_stories(limit: int = 500, year: int | None = None) -> list[dict[str, Any
                 s.league,
                 s.team_home,
                 s.team_away,
+                s.location_type,
+                s.city,
+                s.country_code,
+                s.pvd_score,
+                s.content_type,
                 c.capital AS fact_capital,
                 c.population AS fact_population,
                 c.gdp_ppp AS fact_gdp_ppp,
@@ -415,6 +510,9 @@ def get_stories(limit: int = 500, year: int | None = None) -> list[dict[str, Any
                     s.league,
                     s.team_home,
                     s.team_away,
+                    s.location_type,
+                    s.city,
+                    s.country_code,
                     c.capital AS fact_capital,
                     c.population AS fact_population,
                     c.gdp_ppp AS fact_gdp_ppp,
@@ -694,8 +792,9 @@ def _story_rank_score(
     return (relevance + popularity, ts)
 
 
-def get_country_detail(country_name: str) -> dict[str, Any]:
-    """Return CIA facts and relevant recent stories for a selected country."""
+def get_country_detail(country_name: str, year: int | None = None) -> dict[str, Any]:
+    """Return CIA facts and relevant recent stories for a selected country.
+    If year is set, only include stories with published_at year <= year (for historical border view)."""
     normalized = normalize_country_name(country_name)
     with get_connection() as conn:
         fact_row = conn.execute(
@@ -721,7 +820,8 @@ def get_country_detail(country_name: str) -> dict[str, Any]:
 
         stories_rows = conn.execute(
             """
-            SELECT source, title, display_title, url, summary, published_at, country, topic
+            SELECT source, title, display_title, url, summary, published_at, country, topic,
+                   lat, lon, location_type, city, country_code, pvd_score, content_type
             FROM stories
             ORDER BY published_at DESC
             LIMIT 300
@@ -735,13 +835,31 @@ def get_country_detail(country_name: str) -> dict[str, Any]:
     stories = [
         s for s in stories if normalize_country_name(s.get("country") or "") == normalized
     ]
+    if year is not None:
+        def _story_year(s: dict[str, Any]) -> int | None:
+            ts = s.get("published_at")
+            if not ts:
+                return None
+            try:
+                return int(str(ts)[:4])
+            except (ValueError, TypeError):
+                return None
+        stories = [s for s in stories if (_story_year(s) or 0) <= year]
     for s in stories:
         s.pop("country", None)
+    try:
+        from app.ranking import score_story_pvd
+        for s in stories:
+            if s.get("pvd_score") is None:
+                s["pvd_score"] = score_story_pvd(s)
+    except Exception:
+        pass
     country_pattern = re.compile(rf"\b{re.escape(country_name)}\b", re.IGNORECASE)
 
-    def rank_key(s: dict[str, Any]) -> tuple[int, float]:
-        score, ts = _story_rank_score(s, country_name, country_pattern)
-        return (-score, -ts)  # higher score first, then newer first
+    def pvd_sort_key(s: dict[str, Any]) -> tuple[float, float]:
+        pvd = float(s.get("pvd_score") or 0.0)
+        ts = _parse_published_ts(s.get("published_at"))
+        return (-pvd, -ts)  # higher PVD score first, then newer first
 
     all_source_stories = []
     for s in stories:
@@ -750,7 +868,7 @@ def get_country_detail(country_name: str) -> dict[str, Any]:
             all_source_stories.append(s)
     if not all_source_stories:
         all_source_stories = list(stories)
-    all_source_stories.sort(key=rank_key)
+    all_source_stories.sort(key=pvd_sort_key)
     graphic_detail_stories = [
         s for s in all_source_stories
         if str(s.get("source", "")).lower() == "economist_graphic_detail"
@@ -760,7 +878,7 @@ def get_country_detail(country_name: str) -> dict[str, Any]:
         if str(s.get("source", "")).lower() != "economist_graphic_detail"
     ][:40]
 
-    stories.sort(key=rank_key)
+    stories.sort(key=pvd_sort_key)
     recent_stories = stories[:20]
 
     source_counts: dict[str, int] = {}

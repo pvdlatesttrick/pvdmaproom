@@ -36,8 +36,10 @@ from app.factbook import (
     normalize_country_name,
 )
 from app.ai_summary import _client, classify_topic, generate_ai_title
-from app.geo.location import attach_location
+from app.geo.location import attach_location, _country_name_to_iso2
 from app.geo.stadiums import get_stadium_for_team
+from app.ranking import score_story_pvd
+from app.content_classification import classify_content_type, should_include_story_on_map
 from app.location_inference import infer_relevant_countries
 from app.sources.world_feeds import fetch_all_world_sources
 from app.sources.x_reports import fetch_verified_x_reports
@@ -214,6 +216,21 @@ TEAM_TEXT_TO_KEY_AND_SPORT: list[tuple[re.Pattern[str], str, str]] = [
     (re.compile(r"\bclemson\b", re.I), "clemson-tigers-football", "football"),
     (re.compile(r"\bmichigan\s+wolverines\b", re.I), "michigan-wolverines-football", "football"),
     (re.compile(r"\btexas\s+longhorns\b", re.I), "texas-longhorns-football", "football"),
+    (re.compile(r"\bflorida\s+gators\b|\bgators\b.*(?:florida|sec|college)", re.I), "florida-gators-football", "football"),
+    (re.compile(r"\btennessee\s+volunteers\b|\bvolunteers\b.*(?:tennessee|sec)", re.I), "tennessee-volunteers-football", "football"),
+    (re.compile(r"\bpenn state\b|\bnittany lions\b", re.I), "penn-state-nittany-lions-football", "football"),
+    (re.compile(r"\boklahoma\s+sooners\b|\bsooners\b", re.I), "oklahoma-sooners-football", "football"),
+    (re.compile(r"\bflorida state\b|\bseminoles\b.*(?:florida|acc)", re.I), "florida-state-seminoles-football", "football"),
+    (re.compile(r"\boregon\s+ducks\b|\bducks\b.*(?:oregon|pac)", re.I), "oregon-ducks-football", "football"),
+    (re.compile(r"\busc\s+trojans\b|\btrojans\b.*(?:usc|southern california)", re.I), "usc-trojans-football", "football"),
+    (re.compile(r"\btexas a&m\b|\baggies\b", re.I), "texas-am-aggies-football", "football"),
+    (re.compile(r"\bnebraska\s+cornhuskers\b|\bcornhuskers\b", re.I), "nebraska-cornhuskers-football", "football"),
+    (re.compile(r"\bwisconsin\s+badgers\b|\bbadgers\b.*(?:wisconsin|big ten)", re.I), "wisconsin-badgers-football", "football"),
+    (re.compile(r"\bmiami\s+hurricanes\b|\bhurricanes\b.*(?:miami|acc)", re.I), "miami-hurricanes-football", "football"),
+    (re.compile(r"\bnorth carolina\s+tar heels\b|\btar heels\b", re.I), "north-carolina-tar-heels-football", "football"),
+    (re.compile(r"\bvirginia tech\b|\bhokies\b", re.I), "virginia-tech-hokies-football", "football"),
+    (re.compile(r"\bwashington\s+huskies\b|\bhuskies\b.*(?:washington|pac)", re.I), "washington-huskies-football", "football"),
+    (re.compile(r"\boklahoma state\b|\bcowboys\b.*(?:oklahoma state|big 12)", re.I), "oklahoma-state-cowboys-football", "football"),
     (re.compile(r"\blakers\b", re.I), "los-angeles-lakers", "basketball"),
     (re.compile(r"\bceltics\b", re.I), "boston-celtics", "basketball"),
     (re.compile(r"\byankees\b", re.I), "new-york-yankees", "baseball"),
@@ -565,10 +582,12 @@ def _infer_league_from_source_and_text(story: dict[str, Any]) -> str | None:
         return "nhl"
     if "espn_ncf" in src or "ncf" in text:
         return "ncaa_football"
+    if any(x in text for x in ("big 12", "big twelve", "acc ", "atlantic coast", "pac-12", "pac 12", "pac12")):
+        return "ncaa_football"
     if "espn_ncb" in src or "ncb" in text or "march madness" in text:
         return "ncaa_basketball"
     if "espn_ncaa" in src:
-        if "football" in text or "sec" in text or "big ten" in text:
+        if any(x in text for x in ("football", "sec", "big ten", "big 12", "acc", "pac-12", "pac 12", "atlantic coast conference")):
             return "ncaa_football"
         if "basketball" in text:
             return "ncaa_basketball"
@@ -1076,6 +1095,10 @@ def run_ingest() -> None:
             story["lon"] = 0.0
             _ensure_display_title(story)
             story["topic"] = _resolve_story_topic(story, ai_client)
+            story["content_type"] = classify_content_type(story, ai_client)
+            if not should_include_story_on_map(story):
+                continue
+            story["pvd_score"] = score_story_pvd(story)
             upsert_story(story)
             continue
         source_key = str(story.get("source", "")).lower()
@@ -1097,6 +1120,26 @@ def run_ingest() -> None:
             min_score = _min_score_for(country)
             if country and _is_highly_relevant(story, country, place, min_score=min_score):
                 _ensure_display_title(story)
+                story["content_type"] = classify_content_type(story, ai_client)
+                if not should_include_story_on_map(story):
+                    continue
+                story["pvd_score"] = score_story_pvd(story)
+                upsert_story(story)
+                _record_added(country)
+                _record_article_video_links_if_x(story)
+                fact = lookup_country_fact(factbook_index, country)
+                if fact is not None:
+                    upsert_country_fact(fact)
+            continue
+        if story.get("location_type") == "country" and (story.get("country") or "").strip():
+            country = (story.get("country") or "").strip()
+            min_score = _min_score_for(country)
+            if _is_highly_relevant(story, country, country, min_score=min_score):
+                _ensure_display_title(story)
+                story["content_type"] = classify_content_type(story, ai_client)
+                if not should_include_story_on_map(story):
+                    continue
+                story["pvd_score"] = score_story_pvd(story)
                 upsert_story(story)
                 _record_added(country)
                 _record_article_video_links_if_x(story)
@@ -1113,8 +1156,14 @@ def run_ingest() -> None:
                 story["country"] = country
                 story["lat"] = lat
                 story["lon"] = lon
+                story["location_type"] = "city"
+                story["country_code"] = _country_name_to_iso2(country) if country else None
                 _ensure_display_title(story)
                 story["topic"] = _resolve_story_topic(story, ai_client)
+                story["content_type"] = classify_content_type(story, ai_client)
+                if not should_include_story_on_map(story):
+                    continue
+                story["pvd_score"] = score_story_pvd(story)
                 upsert_story(story)
                 _record_added(country)
                 _record_article_video_links_if_x(story)
@@ -1123,7 +1172,7 @@ def run_ingest() -> None:
                     upsert_country_fact(fact)
             continue
 
-        # Location could not be resolved: use model to infer relevant countries and add only there.
+        # Location could not be resolved: use model to infer relevant countries; store as country-only (no pin).
         try:
             countries = infer_relevant_countries(story)
         except Exception as e:
@@ -1134,24 +1183,27 @@ def run_ingest() -> None:
                 exc_info=False,
             )
             countries = []
+        story["content_type"] = classify_content_type(story, ai_client)
+        if not should_include_story_on_map(story):
+            continue
         for country_name in countries[:5]:
             if not (country_name and country_name.strip()):
                 continue
             country_name = country_name.strip()
-            coords = _geocode_place(geocoder, country_name)
-            if coords is None:
-                continue
-            lat, lon, country_from_geocode = coords
-            country = country_from_geocode or country_name
-            story["place"] = country_name
-            story["country"] = country
-            story["lat"] = lat
-            story["lon"] = lon
+            country = country_name
             min_score = _min_score_for(country)
             if not _is_highly_relevant(story, country, country_name, min_score=min_score):
                 continue
             _ensure_display_title(story)
             story["topic"] = _resolve_story_topic(story, ai_client)
+            story["place"] = country_name
+            story["country"] = country
+            story["lat"] = None
+            story["lon"] = None
+            story["location_type"] = "country"
+            story["country_code"] = _country_name_to_iso2(country)
+            story["city"] = None
+            story["pvd_score"] = score_story_pvd(story)
             upsert_story(story)
             _record_added(country)
             _record_article_video_links_if_x(story)

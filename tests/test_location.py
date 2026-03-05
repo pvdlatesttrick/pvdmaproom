@@ -20,6 +20,8 @@ def test_saints_jordan_pins_at_superdome_not_jordan_country():
     attach_location(story)
 
     assert "lat" in story and "lon" in story
+    assert story.get("location_type") == "city"
+    assert story.get("country_code") == "US"
     assert story["country"] == "United States"
     lat, lon = story["lat"], story["lon"]
     # Caesars Superdome is in New Orleans (~29.95, -90.08)

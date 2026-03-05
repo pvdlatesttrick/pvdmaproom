@@ -40,6 +40,15 @@
           <input id="year-select-input" class="year-select-input" type="number" min="-1000" max="2030" step="1" placeholder="Current" aria-label="Year (negative for BC)" />
           <span id="year-select-bc" class="year-select-bc" aria-hidden="true"></span>
         </div>
+        <div class="border-year-wrap" title="Country borders for selected year (historical boundaries)">
+          <label for="year-select" class="year-select-label">Borders</label>
+          <select id="year-select" class="year-select" aria-label="Border year">
+            <option value="1960">1960</option>
+            <option value="1989">1989</option>
+            <option value="2000">2000</option>
+            <option value="2025" selected>2025</option>
+          </select>
+        </div>
         <button id="chat-toggle-btn" class="chat-toggle-btn" type="button" data-action="toggle-pvd-chat" title="Chat with PVD about the map" aria-label="Open PVD chat"><span class="pvd-logo" aria-hidden="true"><svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="pvd-hair" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#f0e0a0"/><stop offset="100%" style="stop-color:#d4a84b"/></linearGradient></defs><circle cx="20" cy="22" r="12" fill="#f5d0b0"/><path d="M8 14 Q8 8 20 6 Q32 8 32 14 L32 20 Q32 24 20 26 Q8 24 8 20 Z" fill="url(#pvd-hair)"/><ellipse cx="16" cy="21" rx="2" ry="2.2" fill="#2c1810"/><ellipse cx="24" cy="21" rx="2" ry="2.2" fill="#2c1810"/><path d="M14 28 Q20 32 26 28" stroke="#c49070" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></span>PVD</button>
       </header>
       <div class="main-row">
@@ -119,6 +128,8 @@
       crossorigin=""
     ></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin=""></script>
+    <!-- WebGL Earth 2: 3D globe with Leaflet-like API (country sizes proportional). Fallback: 2D Leaflet if WE fails to load. -->
+    <script src="https://www.webglearth.com/v2/api.js" crossorigin=""></script>
     <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
     <script src="/static/map.js"></script>
   </body>

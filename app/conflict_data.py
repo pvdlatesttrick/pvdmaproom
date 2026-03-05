@@ -89,7 +89,7 @@ CONFLICT_CASUALTIES: dict[str, dict[str, str]] = {
 
 # Normalized country name -> list of top sports leagues (for Sports map sidebar).
 COUNTRY_TOP_LEAGUES: dict[str, list[str]] = {
-    "united states": ["NFL", "NBA", "MLB", "NHL", "MLS", "NCAA Football", "NCAA Basketball", "NWSL"],
+    "united states": ["NFL", "NBA", "MLB", "NHL", "MLS", "NCAA Football", "NCAA Basketball", "SEC", "Big Ten", "Big 12", "ACC", "Pac-12", "NWSL"],
     "united kingdom": ["Premier League", "Championship", "Scottish Premiership", "WSL", "Premiership Rugby"],
     "spain": ["La Liga", "Segunda División", "ACB", "Liga F"],
     "germany": ["Bundesliga", "2. Bundesliga", "Basketball Bundesliga", "DEL"],

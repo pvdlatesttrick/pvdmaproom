@@ -137,7 +137,14 @@ def create_app() -> Flask:
         name = (request.args.get("name") or "").strip()
         if not name:
             return jsonify({"error": "country name is required"}), 400
-        return jsonify(get_country_detail(name))
+        year_param = request.args.get("year", "").strip()
+        year = None
+        if year_param:
+            try:
+                year = int(year_param)
+            except ValueError:
+                pass
+        return jsonify(get_country_detail(name, year=year))
 
     @app.get("/api/isw-frontlines")
     def api_isw_frontlines():
