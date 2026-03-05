@@ -79,7 +79,10 @@ const SOURCE_META = {
   espn_tennis: { name: "ESPN Tennis", logo: "https://cdn.simpleicons.org/espn/FF0033" },
   on3: { name: "On3", logo: "https://logo.clearbit.com/on3.com" },
   nbcsports: { name: "NBC Sports", logo: "https://cdn.simpleicons.org/nbcsports/FFFFFF" },
-  the_athletic: { name: "The Athletic", logo: "https://logo.clearbit.com/theathletic.com" }
+  the_athletic: { name: "The Athletic", logo: "https://logo.clearbit.com/theathletic.com" },
+  bbc_sport: { name: "BBC Sport", logo: "https://cdn.simpleicons.org/bbc/FFFFFF" },
+  sky_sports_football: { name: "Sky Sports Football", logo: "https://cdn.simpleicons.org/sky/0072C6" },
+  guardian_football: { name: "The Guardian Football", logo: "https://cdn.simpleicons.org/theguardian/FFFFFF" }
 };
 SOURCE_META.x_reutersworld = { name: "X @ReutersWorld", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
 SOURCE_META.x_bbcbreaking = { name: "X @BBCBreaking", logo: "https://cdn.simpleicons.org/x/FFFFFF" };
@@ -113,6 +116,30 @@ SOURCE_META.substack_rochan = { name: "Ukraine Conflict Monitor", logo: "https:/
 SOURCE_META.substack_counteroffensive = { name: "The Counteroffensive", logo: "https://logo.clearbit.com/counteroffensive.substack.com" };
 SOURCE_META.substack_warwickpowell = { name: "Warwick Powell (Substack)", logo: "https://cdn.simpleicons.org/substack/FF6719" };
 SOURCE_META.substack_professorbonk = { name: "Professor Bonk (Substack)", logo: "https://cdn.simpleicons.org/substack/FF6719" };
+SOURCE_META.wikipedia_historical = { name: "Wikipedia (historical)", logo: "https://cdn.simpleicons.org/wikipedia/FFFFFF" };
+
+// Logo-only map pins: per-source Leaflet icons (no generic teardrop). Keys match story.source.
+const ICON_SIZE = [30, 30];
+const ICON_ANCHOR = [15, 30];
+const POPUP_ANCHOR = [0, -26];
+const sourceIcons = {};
+Object.keys(SOURCE_META).forEach((key) => {
+  const meta = SOURCE_META[key];
+  const logoUrl = meta.logo || meta.logoFallback || "/static/icons/default-news.svg";
+  sourceIcons[key] = L.icon({
+    iconUrl: logoUrl,
+    iconSize: ICON_SIZE,
+    iconAnchor: ICON_ANCHOR,
+    popupAnchor: POPUP_ANCHOR,
+  });
+});
+const defaultSourceIcon = L.icon({
+  iconUrl: "/static/icons/default-news.svg",
+  iconSize: [28, 28],
+  iconAnchor: [14, 28],
+  popupAnchor: [0, -24],
+});
+
 const GHOST_WAR_ICON_SVG = "data:image/svg+xml," + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23444" d="M12 2c-4 0-7 3-7 7v2c-2 0-4 2-4 4v6h4v-2h2v2h2v-2h2v2h2v-2h4v-6c0-2-2-4-4-4V9c0-4-3-7-7-7z"/><circle cx="9" cy="10" r="1.5" fill="%23fff"/><circle cx="15" cy="10" r="1.5" fill="%23fff"/></svg>'
 );
@@ -135,6 +162,15 @@ const MAP_DEFS = {
   conflicts: { mapId: "map-conflicts", title: "Conflicts Map" },
   sports: { mapId: "map-sports", title: "Sports Map" }
 };
+
+const TOPIC_LABELS = ["economics", "geopolitics", "conflicts", "sports"];
+const TOPIC_DEFINITIONS = {
+  economics: "Macroeconomy, inflation, trade flows, markets, industry, business deals, economic policy that primarily affects money, jobs, trade, or growth.",
+  geopolitics: "Diplomacy, alliances, great-power competition, elections, foreign policy, international institutions, sanctions as tools of statecraft.",
+  conflicts: "Wars, military operations, armed clashes, terrorism, ceasefires, troop movements, frontlines.",
+  sports: "Professional or national sports, leagues, competitions, tournaments, transfers, game results."
+};
+const TOPIC_PRIORITY = ["conflicts", "geopolitics", "economics", "sports"];
 const SPORTS_LEAGUE_META = {
   nba: { name: "NBA", logo: "https://cdn.simpleicons.org/nba/174B8A" },
   nfl: { name: "NFL", logo: "https://cdn.simpleicons.org/nfl/013369" },
@@ -164,9 +200,57 @@ const SPORTS_LEAGUE_META = {
   czech_extraliga: { name: "Czech Extraliga", logo: "https://logo.clearbit.com/hokej.cz" },
   sports: { name: "Sports", logo: "https://cdn.simpleicons.org/espn/FF0033" }
 };
+
+const TEAM_META = {
+  "auburn-tigers-football": { name: "Auburn Tigers Football", logo: "/static/team-icons/auburn-tigers.png", sport: "football" },
+  "auburn-tigers-basketball": { name: "Auburn Tigers Basketball", logo: "/static/team-icons/auburn-tigers.png", sport: "basketball" },
+  "los-angeles-lakers": { name: "Los Angeles Lakers", logo: "/static/team-icons/la-lakers.png", sport: "basketball" },
+  "boston-celtics": { name: "Boston Celtics", logo: "/static/team-icons/boston-celtics.png", sport: "basketball" },
+  "new-york-yankees": { name: "New York Yankees", logo: "/static/team-icons/new-york-yankees.png", sport: "baseball" },
+  "new-york-mets": { name: "New York Mets", logo: "/static/team-icons/new-york-mets.png", sport: "baseball" },
+  "dallas-cowboys": { name: "Dallas Cowboys", logo: "/static/team-icons/dallas-cowboys.png", sport: "football" },
+  "green-bay-packers": { name: "Green Bay Packers", logo: "/static/team-icons/green-bay-packers.png", sport: "football" },
+  "chicago-bears": { name: "Chicago Bears", logo: "/static/team-icons/chicago-bears.png", sport: "football" },
+  "boston-bruins": { name: "Boston Bruins", logo: "/static/team-icons/boston-bruins.png", sport: "hockey" },
+  "toronto-maple-leafs": { name: "Toronto Maple Leafs", logo: "/static/team-icons/toronto-maple-leafs.png", sport: "hockey" },
+  "manchester-united": { name: "Manchester United", logo: "/static/team-icons/manchester-united.png", sport: "soccer" },
+  "real-madrid": { name: "Real Madrid", logo: "/static/team-icons/real-madrid.png", sport: "soccer" },
+};
+const SPORT_FALLBACK_META = {
+  basketball: { name: "Basketball", logo: "/static/team-icons/generic-basketball.svg" },
+  baseball: { name: "Baseball", logo: "/static/team-icons/generic-baseball.svg" },
+  football: { name: "Football", logo: "/static/team-icons/generic-football.svg" },
+  hockey: { name: "Hockey", logo: "/static/team-icons/generic-hockey.svg" },
+  soccer: { name: "Soccer", logo: "/static/team-icons/generic-soccer.svg" },
+};
+
+const sportsLeagueIcons = {};
+Object.keys(SPORTS_LEAGUE_META).forEach((key) => {
+  const logoUrl = SPORTS_LEAGUE_META[key].logo || "/static/icons/default-news.svg";
+  sportsLeagueIcons[key] = L.icon({
+    iconUrl: logoUrl,
+    iconSize: ICON_SIZE,
+    iconAnchor: ICON_ANCHOR,
+    popupAnchor: POPUP_ANCHOR,
+  });
+});
 let activeMapKey = "economics";
+
+function getActiveMapKey() {
+  return typeof window.activeMapKey !== "undefined" ? window.activeMapKey : activeMapKey;
+}
+
+function setActiveMapKey(mapKey) {
+  activeMapKey = mapKey;
+  window.activeMapKey = mapKey;
+}
+
+/** Selected year for historical view; null = current/latest. Negative = BC (e.g. -1000 = 1000 BC). */
+let selectedYear = null;
 let worldCountryGeoJson = null;
 const mapContexts = {};
+/** Topic -> marker layer; populated after initMapContexts. Used by addStoryToMap. */
+let layersByMapKey = {};
 
 function truncate(text, maxLen = 240) {
   if (!text) return "";
@@ -182,12 +266,14 @@ function sourceMeta(sourceKey) {
 }
 
 function isEconomicsStory(story) {
+  if ((story.source || "").toLowerCase() === "wikipedia_historical") return true;
   const text = `${story.title || ""} ${story.summary || ""}`.toLowerCase();
   return /(econom|finance|market|commodity|oil|gas|gold|copper|trade|tariff|inflation|interest rate|gdp|currency|bond|stocks?)/.test(text);
 }
 
 function isGeopoliticsStory(story) {
   const src = String(story.source || "").toLowerCase();
+  if (src === "wikipedia_historical") return true;
   if (["carnegie", "aei", "hudson", "x_carnegie", "x_hudson", "substack_jamestown", "rudaw_english", "middle_east_eye", "x_rudaw", "x_middleeasteye", "x_kurdistan24"].includes(src)) return true;
   const text = `${story.title || ""} ${story.summary || ""}`.toLowerCase();
   return /(diplom|summit|treaty|election|parliament|president|prime minister|foreign minister|sanctions|united nations|asean|nato|geopolitic|border)/.test(text);
@@ -195,6 +281,7 @@ function isGeopoliticsStory(story) {
 
 function isConflictStory(story) {
   const src = String(story.source || "").toLowerCase();
+  if (src === "wikipedia_historical") return true;
   if (src === "x_isw" || src === "x_liveuamap") return true;
   if (["substack_rochan", "substack_counteroffensive", "substack_warwickpowell", "substack_professorbonk"].includes(src)) return true;
   if (["x_barakravid", "x_clarissaward", "x_richardengel", "x_lynsaddler", "x_nickpatonwalsh", "x_borzsandor", "x_ianbremmer", "x_rudaw", "x_middleeasteye", "x_kurdistan24"].includes(src)) return true;
@@ -203,11 +290,16 @@ function isConflictStory(story) {
   return /(war|conflict|civil war|separat|insurg|militia|cartel|organized crime|armed group|junta|ceasefire|offensive|airstrike|rebel)/.test(text);
 }
 
-const SPORTS_SOURCE_KEYS = new Set(["espn_news", "espn_nfl", "espn_nba", "espn_mlb", "espn_nhl", "espn_soccer", "espn_ncf", "espn_ncb", "espn_ncaa", "espn_tennis", "on3", "nbcsports", "the_athletic"]);
+const SPORTS_SOURCE_KEYS = new Set(["espn_news", "espn_nfl", "espn_nba", "espn_mlb", "espn_nhl", "espn_soccer", "espn_ncf", "espn_ncb", "espn_ncaa", "espn_tennis", "on3", "nbcsports", "the_athletic", "bbc_sport", "sky_sports_football"]);
 function isSportsStory(story) {
   const src = String(story.source || "").toLowerCase();
-  // Sports page should only ever show dedicated sports feeds.
+  if (src === "wikipedia_historical") return true;
   return SPORTS_SOURCE_KEYS.has(src);
+}
+
+/** Canonical topic: use only story.topic (set at ingest). No client-side re-classification. */
+function getStoryTopic(story) {
+  return (story && (story.topic || "geopolitics")) || "geopolitics";
 }
 
 function getLeagueForStory(story) {
@@ -252,6 +344,84 @@ function getLeagueForStory(story) {
   if (/\bmlb\b/.test(text)) return "mlb";
   if (/\bmls\b/.test(text)) return "mls";
   return "sports";
+}
+
+function inferTeamAndSport(story) {
+  const text = `${story.title || ""} ${story.summary || ""}`.toLowerCase();
+  if (/auburn/.test(text)) {
+    if (/basketball|sec tournament|ncaa tournament|march madness/.test(text)) {
+      return { teamKey: "auburn-tigers-basketball", sport: "basketball" };
+    }
+    return { teamKey: "auburn-tigers-football", sport: "football" };
+  }
+  if (/lakers/.test(text)) return { teamKey: "los-angeles-lakers", sport: "basketball" };
+  if (/celtics/.test(text)) return { teamKey: "boston-celtics", sport: "basketball" };
+  if (/yankees/.test(text)) return { teamKey: "new-york-yankees", sport: "baseball" };
+  if (/mets\b/.test(text)) return { teamKey: "new-york-mets", sport: "baseball" };
+  if (/cowboys/.test(text)) return { teamKey: "dallas-cowboys", sport: "football" };
+  if (/packers/.test(text)) return { teamKey: "green-bay-packers", sport: "football" };
+  if (/bears\b/.test(text) && /chicago|nfl/.test(text)) return { teamKey: "chicago-bears", sport: "football" };
+  if (/bruins/.test(text)) return { teamKey: "boston-bruins", sport: "hockey" };
+  if (/maple leafs|leafs\b/.test(text)) return { teamKey: "toronto-maple-leafs", sport: "hockey" };
+  if (/manchester united|man united|man u\b/.test(text)) return { teamKey: "manchester-united", sport: "soccer" };
+  if (/real madrid/.test(text)) return { teamKey: "real-madrid", sport: "soccer" };
+
+  const league = getLeagueForStory(story);
+  if (["nba", "euroleague", "fiba", "ncaa_basketball"].includes(league)) {
+    return { teamKey: null, sport: "basketball" };
+  }
+  if (["mlb", "ncaa_baseball"].includes(league)) {
+    return { teamKey: null, sport: "baseball" };
+  }
+  if (["nfl", "ncaa_football"].includes(league)) {
+    return { teamKey: null, sport: "football" };
+  }
+  if (["nhl", "khl", "ahl", "shl", "liiga", "czech_extraliga"].includes(league)) {
+    return { teamKey: null, sport: "hockey" };
+  }
+  if (["mls", "uefa_champions_league", "premier_league", "la_liga", "bundesliga", "serie_a", "ligue_1"].includes(league)) {
+    return { teamKey: null, sport: "soccer" };
+  }
+  return { teamKey: null, sport: null };
+}
+
+function teamOrSportPinHtml(story) {
+  const { teamKey, sport } = inferTeamAndSport(story);
+  const fallbackLogo = sport && SPORT_FALLBACK_META[sport] ? SPORT_FALLBACK_META[sport].logo : "/static/team-icons/generic-basketball.svg";
+
+  if (teamKey && TEAM_META[teamKey]) {
+    const meta = TEAM_META[teamKey];
+    const logo = meta.logo;
+    const name = meta.name;
+    return `
+      <div class="pin-logo" style="background:#111827;">
+        <img src="${logo}" alt="${name} logo" data-fallback="${fallbackLogo}" onerror="var f=this.getAttribute('data-fallback');if(f){this.onerror=null;this.src=f;}" />
+      </div>
+    `;
+  }
+
+  if (sport && SPORT_FALLBACK_META[sport]) {
+    const meta = SPORT_FALLBACK_META[sport];
+    const logo = meta.logo;
+    return `
+      <div class="pin-logo" style="background:#111827;">
+        <img src="${logo}" alt="${meta.name} icon" />
+      </div>
+    `;
+  }
+
+  const leagueKey = getLeagueForStory(story);
+  return sportsLeaguePinHtml(leagueKey);
+}
+
+function teamOrSportMarkerIcon(story) {
+  return L.divIcon({
+    className: "custom-pin",
+    html: teamOrSportPinHtml(story),
+    iconSize: [20, 24],
+    iconAnchor: [10, 23],
+    popupAnchor: [0, -20],
+  });
 }
 
 function isGhostWarStory(story) {
@@ -466,7 +636,8 @@ function sourceIconHtml(sourceKey, topicKey = "other") {
     espn_tennis: "#FF0033",
     on3: "#1a1a1a",
     nbcsports: "#F37021",
-    the_athletic: "#1a1a1a"
+    the_athletic: "#1a1a1a",
+    wikipedia_historical: "#0d47a1"
   };
   const bg = bgBySource[String(sourceKey || "").toLowerCase()] || "#1f2937";
   const fallback = meta.logoFallback || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23999'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/%3E%3C/svg%3E";
@@ -536,6 +707,110 @@ function countryHighlightStyle() {
 function getCountryNameFromFeature(feature) {
   const p = feature?.properties || {};
   return p.ADMIN || p.name || p.NAME || p.name_long || p.sovereignt || "";
+}
+
+const REGION_DEFAULT_STYLE = {
+  color: "#4B5563",
+  weight: 1,
+  fillColor: "#111827",
+  fillOpacity: 0.1,
+};
+const REGION_HIGHLIGHT_STYLE = {
+  color: "#6B7280",
+  weight: 2,
+  fillColor: "#1F2937",
+  fillOpacity: 0.25,
+};
+
+function getRegionNameFromFeature(feature) {
+  const p = feature?.properties || {};
+  return p.name || p.NAME || p.name_1 || p.admin_1 || p.region || "";
+}
+
+function getRegionCountryFromFeature(feature) {
+  const p = feature?.properties || {};
+  return p.admin || p.ADMIN || p.country || p.iso_a2 || "";
+}
+
+function updateMajorTeamsPanel(data) {
+  const wrap = document.getElementById("country-major-teams-wrap");
+  const el = document.getElementById("country-major-teams");
+  if (!wrap || !el) return;
+  if (data == null) {
+    wrap.style.display = "none";
+    el.innerHTML = "";
+    return;
+  }
+  const teams = Array.isArray(data.teams) ? data.teams : (data && data.length ? data : []);
+  if (teams.length === 0) {
+    wrap.style.display = "none";
+    el.innerHTML = "";
+    return;
+  }
+  wrap.style.display = "block";
+  el.innerHTML = "<ul class=\"sports-leagues-ul\">" + teams.map((t) => {
+    const name = typeof t === "string" ? t : (t.name || t);
+    return `<li>${name}</li>`;
+  }).join("") + "</ul>";
+}
+
+/** Only call when active map is Sports; otherwise use updateMajorTeamsPanel(null). */
+async function loadMajorTeamsForLocation(params) {
+  const { countryCode, stateName, cityName } = params || {};
+  if (getActiveMapKey() !== "sports") {
+    updateMajorTeamsPanel(null);
+    return;
+  }
+  try {
+    const q = new URLSearchParams();
+    if (countryCode) q.set("country", countryCode);
+    if (stateName) q.set("state", stateName);
+    if (cityName) q.set("city", cityName);
+    const res = await fetch("/api/major-teams?" + q.toString());
+    if (!res.ok) {
+      updateMajorTeamsPanel(null);
+      return;
+    }
+    const data = await res.json();
+    updateMajorTeamsPanel(data);
+  } catch (err) {
+    updateMajorTeamsPanel(null);
+  }
+}
+
+function onRegionClick(e, feature, context) {
+  L.DomEvent.stopPropagation(e);
+  if (window.selectedRegionLayer && window.selectedRegionLayer.setStyle) {
+    resetRegionStyle(window.selectedRegionLayer);
+  }
+  window.selectedRegionLayer = e.target;
+  highlightRegion(e.target);
+
+  const regionName = getRegionNameFromFeature(feature);
+  const countryName = getRegionCountryFromFeature(feature);
+  const props = feature.properties || {};
+  const isoA2 = props.iso_a2 || props.iso_3166_2 || (countryName ? COUNTRY_TO_ISO2[countryName.toLowerCase().replace(/\s+/g, " ")] : "US");
+
+  if (context && countryName) {
+    openCountryPanel(countryName, context.mapKey || activeMapKey);
+    const statusEl = document.getElementById("country-search-status");
+    if (statusEl) statusEl.textContent = regionName ? `${regionName}, ${countryName}` : `Showing ${countryName}.`;
+  }
+
+  const currentMapKey = getActiveMapKey();
+  if (currentMapKey === "sports") {
+    loadMajorTeamsForLocation({ countryCode: isoA2 || countryName, stateName: regionName || null, cityName: null });
+  } else {
+    updateMajorTeamsPanel(null);
+  }
+}
+
+function highlightRegion(layer) {
+  if (layer && layer.setStyle) layer.setStyle(REGION_HIGHLIGHT_STYLE);
+}
+
+function resetRegionStyle(layer) {
+  if (layer && layer.setStyle) layer.setStyle(REGION_DEFAULT_STYLE);
 }
 
 const COUNTRY_TO_ISO2 = {
@@ -748,6 +1023,29 @@ async function fetchAiSummary(type, body) {
   return data.summary || "";
 }
 
+function formatEconSnapshotHtml(snap) {
+  const fmtNum = (v) => {
+    if (v == null || typeof v !== "number") return "—";
+    if (Math.abs(v) >= 1e12) return `$${(v / 1e12).toFixed(2)}T`;
+    if (Math.abs(v) >= 1e9) return `$${(v / 1e9).toFixed(2)}B`;
+    if (Math.abs(v) >= 1e6) return `$${(v / 1e6).toFixed(2)}M`;
+    return `$${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  };
+  const fmtPct = (v) => (v != null && typeof v === "number" ? `${v.toFixed(1)}%` : "—");
+  const rows = [];
+  if (snap.gdp_current_usd != null) rows.push(`<div><b>GDP (current US$):</b> ${fmtNum(snap.gdp_current_usd)}</div>`);
+  if (snap.gdp_per_capita_usd != null) rows.push(`<div><b>GDP per capita:</b> ${fmtNum(snap.gdp_per_capita_usd)}</div>`);
+  if (snap.gdp_growth_pct != null) rows.push(`<div><b>GDP growth (annual %):</b> ${fmtPct(snap.gdp_growth_pct)}</div>`);
+  if (snap.inflation_pct != null) rows.push(`<div><b>Inflation (CPI, annual %):</b> ${fmtPct(snap.inflation_pct)}</div>`);
+  if (snap.unemployment_pct != null) rows.push(`<div><b>Unemployment (%):</b> ${fmtPct(snap.unemployment_pct)}</div>`);
+  if (snap.debt_pct_gdp != null) rows.push(`<div><b>Gov. debt (% GDP):</b> ${fmtPct(snap.debt_pct_gdp)}</div>`);
+  if (snap.fiscal_balance_pct_gdp != null) rows.push(`<div><b>Fiscal balance (% GDP):</b> ${fmtPct(snap.fiscal_balance_pct_gdp)}</div>`);
+  if (snap.imf_gdp_growth_pct != null) rows.push(`<div><b>IMF GDP growth (%):</b> ${fmtPct(snap.imf_gdp_growth_pct)}</div>`);
+  if (snap.imf_inflation_pct != null) rows.push(`<div><b>IMF inflation (%):</b> ${fmtPct(snap.imf_inflation_pct)}</div>`);
+  if (snap.year) rows.push(`<div class="muted"><b>Reference year:</b> ${snap.year}</div>`);
+  return rows.length ? rows.join("") : "<div class=\"muted\">No economic data available for this country.</div>";
+}
+
 async function openCountryPanel(countryName, mapKey) {
   mapKey = mapKey || activeMapKey;
   const sidePanel = document.getElementById("country-side-panel");
@@ -776,6 +1074,7 @@ async function openCountryPanel(countryName, mapKey) {
   if (conflictCasualtiesEl) conflictCasualtiesEl.innerHTML = "";
   if (sportsLeaguesWrap) sportsLeaguesWrap.style.display = "none";
   if (sportsLeaguesEl) sportsLeaguesEl.innerHTML = "";
+  updateMajorTeamsPanel(null);
   const aiSummaryResult = document.getElementById("country-ai-summary-result");
   if (aiSummaryResult) { aiSummaryResult.textContent = ""; aiSummaryResult.className = "ai-summary-result"; }
   if (graphicDetailSection) graphicDetailSection.style.display = "none";
@@ -800,18 +1099,43 @@ async function openCountryPanel(countryName, mapKey) {
     titleEl.append(displayName);
     sidePanel.dataset.currentCountry = englishName || countryName;
     const facts = payload.facts || null;
+    const econSnap = payload.econ_snapshot || {};
+    const hasEconSnap = Object.keys(econSnap).filter((k) => k !== "sources").length > 0;
 
     if (facts) {
+      const showLegacyGdp = !hasEconSnap && (facts.gdp_ppp || facts.economist_economic_rank);
       factsEl.innerHTML = `
         <div><b>Capital:</b> ${facts.capital || "n/a"}</div>
         <div><b>Population:</b> ${facts.population || "n/a"}</div>
-        <div><b>GDP (PPP):</b> ${facts.gdp_ppp || "n/a"}</div>
-        <div><b>Economist economic rank:</b> ${facts.economist_economic_rank || "n/a"}</div>
+        ${showLegacyGdp ? `<div><b>GDP (PPP):</b> ${facts.gdp_ppp || "n/a"}</div><div><b>Economist economic rank:</b> ${facts.economist_economic_rank || "n/a"}</div>` : ""}
         <div><b>Area:</b> ${facts.area_total || "n/a"}</div>
         <div><b>Government:</b> ${facts.government_type || "n/a"}</div>
       `;
     } else {
       factsEl.innerHTML = "No CIA Factbook data found for this country.";
+    }
+
+    const econSnapshotWrap = document.getElementById("country-econ-snapshot-wrap");
+    const econSnapshotEl = document.getElementById("country-econ-snapshot");
+    if (econSnapshotWrap && econSnapshotEl) {
+      if (hasEconSnap) {
+        econSnapshotEl.innerHTML = formatEconSnapshotHtml(econSnap);
+        econSnapshotWrap.style.display = (mapKey === "economics") ? "block" : "none";
+      } else {
+        econSnapshotWrap.style.display = "none";
+        econSnapshotEl.innerHTML = "";
+      }
+    }
+    const wikiSnippet = payload.wikipedia_snippet;
+    if (wikiSnippet) {
+      const wrap = document.createElement("div");
+      wrap.className = "wikipedia-snippet muted";
+      wrap.style.marginTop = "8px";
+      const label = document.createElement("strong");
+      label.textContent = "From Wikipedia (data only): ";
+      wrap.appendChild(label);
+      wrap.appendChild(document.createTextNode(wikiSnippet));
+      factsEl.appendChild(wrap);
     }
 
     const economistRankingsSection = document.getElementById("economist-rankings-section");
@@ -860,16 +1184,18 @@ async function openCountryPanel(countryName, mapKey) {
       if (graphicDetailSection) graphicDetailSection.style.display = "none";
       if (allSourcesHeading) allSourcesHeading.textContent = "Conflict & military news";
       if (recentUpdatesHeading) recentUpdatesHeading.style.display = "none";
-      const conflictStories = allSourceStories.length ? allSourceStories.filter(isConflictStory) : recentStories.filter(isConflictStory);
+      const conflictStories = (allSourceStories.length ? allSourceStories : recentStories).filter((s) => (s.topic || "geopolitics") === "conflicts");
       storyListEl.innerHTML = conflictStories.length ? conflictStories.map(storyCardHtml).join("") : `<div class="muted">No conflict or military news for this country yet.</div>`;
       allSourcesListEl.innerHTML = "";
     } else if (mapKey === "economics") {
       if (factsWrap) factsWrap.style.display = "block";
       if (aiSummarySection) aiSummarySection.style.display = "block";
+      if (economistRankingsSection && hasEconSnap) economistRankingsSection.style.display = "none";
       if (allSourcesHeading) allSourcesHeading.textContent = "Economic coverage";
       if (recentUpdatesHeading) { recentUpdatesHeading.style.display = ""; recentUpdatesHeading.textContent = "Recent mapped updates"; }
-      allSourcesListEl.innerHTML = allSourceStories.length ? allSourceStories.map(storyCardHtml).join("") : `<div class="muted">No source coverage matched this country yet.</div>`;
-      storyListEl.innerHTML = recentStories.length ? recentStories.map(storyCardHtml).join("") : `<div class="muted">No recent mapped stories for this country yet.</div>`;
+      const economicsStories = (allSourceStories.length ? allSourceStories : recentStories).filter((s) => (s.topic || "geopolitics") === "economics");
+      allSourcesListEl.innerHTML = economicsStories.length ? economicsStories.map(storyCardHtml).join("") : `<div class="muted">No economic coverage for this country yet.</div>`;
+      storyListEl.innerHTML = economicsStories.length ? economicsStories.map(storyCardHtml).join("") : `<div class="muted">No recent mapped stories for this country yet.</div>`;
     } else if (mapKey === "sports") {
       if (sportsLeaguesWrap && (payload.top_sports_leagues || []).length > 0) {
         sportsLeaguesWrap.style.display = "block";
@@ -881,16 +1207,17 @@ async function openCountryPanel(countryName, mapKey) {
       if (graphicDetailSection) graphicDetailSection.style.display = "none";
       if (allSourcesHeading) allSourcesHeading.textContent = "Sports coverage";
       if (recentUpdatesHeading) recentUpdatesHeading.style.display = "none";
-      const sportsStories = allSourceStories.length ? allSourceStories.filter(isSportsStory) : recentStories.filter(isSportsStory);
+      const sportsStories = (allSourceStories.length ? allSourceStories : recentStories).filter((s) => (s.topic || "geopolitics") === "sports");
       storyListEl.innerHTML = sportsStories.length ? sportsStories.map(storyCardHtml).join("") : `<div class="muted">No sports coverage for this country yet.</div>`;
       allSourcesListEl.innerHTML = "";
     } else {
       if (factsWrap) factsWrap.style.display = "block";
       if (aiSummarySection) aiSummarySection.style.display = "block";
-      if (allSourcesHeading) allSourcesHeading.textContent = "Coverage from all sources";
+      if (allSourcesHeading) allSourcesHeading.textContent = "Geopolitics coverage";
       if (recentUpdatesHeading) { recentUpdatesHeading.style.display = ""; recentUpdatesHeading.textContent = "Recent mapped updates"; }
-      allSourcesListEl.innerHTML = allSourceStories.length ? allSourceStories.map(storyCardHtml).join("") : `<div class="muted">No source coverage matched this country yet.</div>`;
-      storyListEl.innerHTML = recentStories.length ? recentStories.map(storyCardHtml).join("") : `<div class="muted">No recent mapped stories for this country yet.</div>`;
+      const geopoliticsStories = (allSourceStories.length ? allSourceStories : recentStories).filter((s) => (s.topic || "geopolitics") === "geopolitics");
+      allSourcesListEl.innerHTML = geopoliticsStories.length ? geopoliticsStories.map(storyCardHtml).join("") : `<div class="muted">No geopolitics coverage for this country yet.</div>`;
+      storyListEl.innerHTML = geopoliticsStories.length ? geopoliticsStories.map(storyCardHtml).join("") : `<div class="muted">No recent mapped stories for this country yet.</div>`;
     }
   } catch (error) {
     factsEl.innerHTML = "Failed to load country details.";
@@ -1021,48 +1348,65 @@ function isStoryNew(publishedAt) {
     return !isNaN(t) && (Date.now() - t) < TWO_HOURS_MS;
   } catch (_) { return false; }
 }
+
+function addStoryToMap(story, countryMajorEvents) {
+  const topic = story.topic || "geopolitics";
+  const layerGroup = layersByMapKey[topic] || layersByMapKey.geopolitics;
+  if (!layerGroup) return;
+  let icon;
+  if (topic === "sports") {
+    icon = teamOrSportMarkerIcon(story);
+  } else {
+    const sourceKey = String(story.source || "").toLowerCase();
+    icon = sourceIcons[sourceKey] || defaultSourceIcon;
+    if (!sourceIcons[sourceKey]) {
+      console.warn("Missing icon for source:", story.source);
+    }
+  }
+  const marker = L.marker([story.lat, story.lon], { icon });
+  marker.bindPopup(popupHtml(story, countryMajorEvents || {}));
+  marker.on("popupopen", () => {
+    if (window.twttr && window.twttr.widgets) window.twttr.widgets.load();
+  });
+  layerGroup.addLayer(marker);
+}
+
 async function refreshStories() {
   const overlay = document.getElementById("map-loading-overlay");
   if (overlay) overlay.classList.remove("hidden");
   try {
-    const response = await fetch("/api/stories");
+    let url = "/api/stories";
+    if (selectedYear !== null && selectedYear !== undefined) {
+      url += "?year=" + encodeURIComponent(selectedYear);
+    }
+    const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const stories = await response.json();
-    const filters = {
-      economics: isEconomicsStory,
-      geopolitics: isGeopoliticsStory,
-      conflicts: isConflictStory,
-      sports: isSportsStory
-    };
-
+    const visible = stories.filter((s) => {
+      if (typeof s.lat !== "number" || typeof s.lon !== "number") return false;
+      if (s.source === "economist_podcast") return false;
+      if (s.country === "World" && (s.source || "").toLowerCase() !== "wikipedia_historical") return false;
+      return true;
+    });
+    const countryMajorEvents = buildCountryMajorEvents(visible);
+    const byTopic = { economics: [], geopolitics: [], conflicts: [], sports: [] };
+    visible.forEach((s) => {
+      const topic = s.topic || "geopolitics";
+      const bucket = byTopic[topic] || byTopic.geopolitics;
+      if (bucket) bucket.push(s);
+    });
+    const sportsSpread = spreadSportsPins(byTopic.sports || []);
+    Object.keys(layersByMapKey).forEach((topic) => layersByMapKey[topic].clearLayers());
+    Object.keys(byTopic).forEach((topic) => {
+      const list = topic === "sports" ? sportsSpread : (byTopic[topic] || []);
+      list.forEach((story) => addStoryToMap(story, countryMajorEvents));
+    });
     Object.keys(MAP_DEFS).forEach((mapKey) => {
-      const context = mapContexts[mapKey];
-      const filterFn = filters[mapKey];
-      let filtered = stories.filter((s) => filterFn(s));
-      if (mapKey === "sports") filtered = spreadSportsPins(filtered);
-      const countryMajorEvents = buildCountryMajorEvents(filtered);
-      context.markerLayer.clearLayers();
-      const useLeaguePin = mapKey === "sports";
-      filtered.forEach((story) => {
-        if (typeof story.lat !== "number" || typeof story.lon !== "number") return;
-        if (story.country === "World" || story.source === "economist_podcast") return;
-        const topicKey = classifyStoryTopic(story);
-        const icon = useLeaguePin
-          ? sportsMarkerIcon(getLeagueForStory(story))
-          : markerIcon(story.source, topicKey);
-        const marker = L.marker([story.lat, story.lon], { icon });
-        marker.bindPopup(popupHtml(story, countryMajorEvents));
-        marker.on("popupopen", () => {
-          if (window.twttr && window.twttr.widgets) {
-            window.twttr.widgets.load();
-          }
-        });
-        marker.addTo(context.markerLayer);
-      });
       const tabBtn = document.querySelector(`.map-tab[data-map-key="${mapKey}"]`);
       if (tabBtn) {
         const label = MAP_DEFS[mapKey] ? MAP_DEFS[mapKey].title : mapKey;
-        tabBtn.textContent = `${label} (${filtered.length})`;
+        const count = (mapKey === "sports" ? sportsSpread : (byTopic[mapKey] || [])).length;
+        tabBtn.textContent = `${label} (${count})`;
       }
     });
   } catch (error) {
@@ -1208,6 +1552,12 @@ function initMapContexts() {
       iswLinesLayer: iswLinesLayer || undefined
     };
   });
+  layersByMapKey = {
+    economics: mapContexts.economics.markerLayer,
+    geopolitics: mapContexts.geopolitics.markerLayer,
+    conflicts: mapContexts.conflicts.markerLayer,
+    sports: mapContexts.sports.markerLayer
+  };
 }
 
 async function loadCountryGeoJsonOnce() {
@@ -1217,8 +1567,35 @@ async function loadCountryGeoJsonOnce() {
   Object.values(mapContexts).forEach((context) => loadCountryBordersForContext(context));
 }
 
+function loadAdmin1ForContext(context, data) {
+  if (!data || !data.features || !data.features.length) return;
+  const regionLayer = L.geoJSON(data, {
+    style: () => REGION_DEFAULT_STYLE,
+    onEachFeature: (feature, layer) => {
+      layer.on({
+        click: (e) => onRegionClick(e, feature, context),
+        mouseover: () => highlightRegion(layer),
+        mouseout: () => resetRegionStyle(layer),
+      });
+    },
+  });
+  regionLayer.addTo(context.map);
+  context.regionLayer = regionLayer;
+}
+
+async function loadAdmin1GeoJsonOnce() {
+  try {
+    const res = await fetch("/static/geo/admin1.geojson");
+    if (!res.ok) return;
+    const data = await res.json();
+    Object.values(mapContexts).forEach((context) => loadAdmin1ForContext(context, data));
+  } catch (err) {
+    console.error("Failed to load admin1 geojson", err);
+  }
+}
+
 function activateMapTab(mapKey) {
-  activeMapKey = mapKey;
+  setActiveMapKey(mapKey);
   document.querySelectorAll(".map-tab").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.mapKey === mapKey);
   });
@@ -1255,6 +1632,30 @@ function initMapsDropdown() {
       dd.classList.remove("open");
       trigger.setAttribute("aria-expanded", "false");
     }
+  });
+}
+
+function initYearSelector() {
+  const input = document.getElementById("year-select-input");
+  const bcSpan = document.getElementById("year-select-bc");
+  if (!input) return;
+  function applyYear() {
+    const raw = input.value.trim();
+    if (raw === "") {
+      selectedYear = null;
+      if (bcSpan) bcSpan.textContent = "";
+      refreshStories();
+      return;
+    }
+    const n = parseInt(input.value, 10);
+    if (isNaN(n) || n < -1000 || n > 2030) return;
+    selectedYear = n;
+    if (bcSpan) bcSpan.textContent = n < 1 ? "BC" : "";
+    refreshStories();
+  }
+  input.addEventListener("change", applyYear);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") applyYear();
   });
 }
 
@@ -1301,12 +1702,17 @@ function enableDraggablePanel() {
 
 function initChat() {
   const chatPanel = document.getElementById("chat-panel");
-  const chatToggle = document.getElementById("chat-toggle-btn");
+  const chatToggle = document.getElementById("chat-toggle-btn") || document.querySelector("[data-action='toggle-pvd-chat']");
   const chatClose = document.getElementById("chat-close-btn");
   const chatMessages = document.getElementById("chat-messages");
   const chatInput = document.getElementById("chat-input");
   const chatSend = document.getElementById("chat-send-btn");
-  if (!chatPanel || !chatToggle || !chatMessages || !chatInput || !chatSend) return;
+  if (!chatPanel || !chatToggle || !chatMessages || !chatInput || !chatSend) {
+    if (typeof console !== "undefined" && console.warn) {
+      console.warn("PVD chat: required elements not found (chat-panel, chat-toggle-btn, chat-messages, chat-input, chat-send-btn). Chat will be disabled.");
+    }
+    return;
+  }
 
   function openChat() {
     chatPanel.classList.add("open");
@@ -1317,10 +1723,15 @@ function initChat() {
     chatPanel.setAttribute("aria-hidden", "true");
   }
 
-  chatToggle.addEventListener("click", () => {
+  chatToggle.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (chatPanel.classList.contains("open")) closeChat(); else openChat();
   });
-  chatClose.addEventListener("click", closeChat);
+  chatClose.addEventListener("click", (e) => {
+    e.preventDefault();
+    closeChat();
+  });
 
   function appendMessage(role, text, isError) {
     const div = document.createElement("div");
@@ -1373,10 +1784,14 @@ function initChat() {
 
 initMapContexts();
 enableDraggablePanel();
-loadCountryGeoJsonOnce().catch((error) => {
-  console.error("Failed to load country borders:", error);
-});
+loadCountryGeoJsonOnce()
+  .then(() => loadAdmin1GeoJsonOnce())
+  .catch((error) => {
+    console.error("Failed to load country borders:", error);
+  });
 initMapsDropdown();
+window.activeMapKey = activeMapKey;
+initYearSelector();
 initChat();
 
 document.addEventListener("click", (e) => {
@@ -1408,10 +1823,12 @@ document.getElementById("country-ai-summary-btn").addEventListener("click", asyn
   const resultEl = document.getElementById("country-ai-summary-result");
   const country = (panel && panel.dataset.currentCountry) || "";
   if (!country || !resultEl) return;
+  const mapKey = (panel && panel.dataset.panelMapKey) || activeMapKey || undefined;
   resultEl.textContent = "Loading…";
   resultEl.className = "ai-summary-result loading";
   try {
-    const summary = await fetchAiSummary("country", { country });
+    const yearParam = selectedYear !== null && selectedYear !== undefined ? selectedYear : undefined;
+    const summary = await fetchAiSummary("country", { country, map_key: mapKey, year: yearParam });
     resultEl.textContent = summary;
     resultEl.className = "ai-summary-result";
   } catch (err) {

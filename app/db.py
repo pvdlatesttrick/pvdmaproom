@@ -142,6 +142,16 @@ def init_db() -> None:
         _migrate_stories_url_country_unique(conn)
         if not _has_column(conn, "stories", "display_title"):
             conn.execute("ALTER TABLE stories ADD COLUMN display_title TEXT NULL")
+        if not _has_column(conn, "stories", "topic"):
+            conn.execute("ALTER TABLE stories ADD COLUMN topic TEXT NULL")
+        if not _has_column(conn, "stories", "sport"):
+            conn.execute("ALTER TABLE stories ADD COLUMN sport TEXT NULL")
+        if not _has_column(conn, "stories", "league"):
+            conn.execute("ALTER TABLE stories ADD COLUMN league TEXT NULL")
+        if not _has_column(conn, "stories", "team_home"):
+            conn.execute("ALTER TABLE stories ADD COLUMN team_home TEXT NULL")
+        if not _has_column(conn, "stories", "team_away"):
+            conn.execute("ALTER TABLE stories ADD COLUMN team_away TEXT NULL")
         conn.commit()
 
 
@@ -193,12 +203,17 @@ def upsert_story(story: dict[str, Any]) -> None:
     """Insert or update a story by (URL, country) so the same story can appear in multiple countries."""
     country = story.get("country") or ""
     display_title = (story.get("display_title") or "").strip() or None
+    topic = (story.get("topic") or "").strip() or None
+    sport = (story.get("sport") or "").strip() or None
+    league = (story.get("league") or "").strip() or None
+    team_home = (story.get("team_home") or "").strip() or None
+    team_away = (story.get("team_away") or "").strip() or None
     with get_connection() as conn:
         conn.execute(
             """
             INSERT INTO stories (
-                source, title, url, summary, published_at, place, country, lat, lon, created_at, display_title
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                source, title, url, summary, published_at, place, country, lat, lon, created_at, display_title, topic, sport, league, team_home, team_away
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(url, country) DO UPDATE SET
                 source = excluded.source,
                 title = excluded.title,
@@ -207,7 +222,12 @@ def upsert_story(story: dict[str, Any]) -> None:
                 place = excluded.place,
                 lat = excluded.lat,
                 lon = excluded.lon,
-                display_title = COALESCE(excluded.display_title, stories.display_title)
+                display_title = COALESCE(excluded.display_title, stories.display_title),
+                topic = COALESCE(excluded.topic, stories.topic),
+                sport = COALESCE(excluded.sport, stories.sport),
+                league = COALESCE(excluded.league, stories.league),
+                team_home = COALESCE(excluded.team_home, stories.team_home),
+                team_away = COALESCE(excluded.team_away, stories.team_away)
             """,
             (
                 story["source"],
@@ -221,6 +241,11 @@ def upsert_story(story: dict[str, Any]) -> None:
                 story["lon"],
                 _utc_now_iso(),
                 display_title,
+                topic,
+                sport,
+                league,
+                team_home,
+                team_away,
             ),
         )
         conn.commit()
@@ -272,11 +297,74 @@ def get_related_video_urls_batch(article_urls: list[str]) -> dict[str, str]:
     return {row["article_url"]: row["video_url"] for row in rows}
 
 
-def get_stories(limit: int = 500) -> list[dict[str, Any]]:
-    """Return newest stories first for API rendering."""
+def _apply_time_relevance_filter(
+    stories: list[dict[str, Any]], limit: int
+) -> list[dict[str, Any]]:
+    """
+    Filter stories by time-based relevance: older stories drop off.
+    Regions with fewer recent stories keep stories longer (extended retention).
+    """
+    # Add days_ago for each story
+    for s in stories:
+        s["_days_ago"] = _published_days_ago(s.get("published_at"))
+
+    # Count how many stories per (normalized) country are in the recent window
+    recent_count: dict[str, int] = {}
+    for s in stories:
+        days = s.get("_days_ago")
+        if days is None:
+            continue
+        country = normalize_country_name((s.get("country") or "").strip())
+        if not country or country == "World":
+            continue
+        if days <= RECENT_WINDOW_DAYS:
+            recent_count[country] = recent_count.get(country, 0) + 1
+
+    # Max age per country: more recent stories -> shorter window; fewer -> longer
+    max_age_days: dict[str, int] = {}
+    for country, count in recent_count.items():
+        if count >= RECENT_HIGH_THRESHOLD:
+            max_age_days[country] = MAX_AGE_DAYS_DEFAULT
+        elif count <= RECENT_LOW_THRESHOLD:
+            max_age_days[country] = MAX_AGE_DAYS_EXTENDED
+        else:
+            max_age_days[country] = 14  # between 7 and 30
+
+    # Keep story if within its country's max age. Unknown/sparse regions (not in max_age_days) get extended retention.
+    filtered: list[dict[str, Any]] = []
+    for s in stories:
+        days = s.get("_days_ago")
+        country = normalize_country_name((s.get("country") or "").strip())
+        if not country or country == "World":
+            country = "World"
+        # Sparse or no recent stories -> keep longer (default extended); else use computed max_age
+        max_age = max_age_days.get(country, MAX_AGE_DAYS_EXTENDED)
+        if days is None:
+            filtered.append(s)  # unparseable date: keep
+        elif days <= max_age:
+            filtered.append(s)
+        s.pop("_days_ago", None)
+
+    # Sort by published_at desc (newest first), take limit
+    filtered.sort(
+        key=lambda x: _parse_published_ts(x.get("published_at")),
+        reverse=True,
+    )
+    return filtered[:limit]
+
+
+def get_stories(limit: int = 500, year: int | None = None) -> list[dict[str, Any]]:
+    """Return newest stories first for API rendering. If year is set, only stories from that year (AD).
+    For BC years (year < 1) the DB has no rows; use historical events API instead.
+    When year is None, stories are filtered by time relevance: they age out, with longer retention
+    in regions that have fewer recent stories."""
+    if year is not None and year < 1:
+        return []
+    # When showing "current" map, fetch more rows so we can apply time/region-aware filtering
+    fetch_limit = limit * 4 if year is None else limit
     with get_connection() as conn:
-        rows = conn.execute(
-            """
+        if year is not None:
+            sql = """
             SELECT
                 s.source,
                 s.title,
@@ -288,6 +376,11 @@ def get_stories(limit: int = 500) -> list[dict[str, Any]]:
                 s.country,
                 s.lat,
                 s.lon,
+                s.topic,
+                s.sport,
+                s.league,
+                s.team_home,
+                s.team_away,
                 c.capital AS fact_capital,
                 c.population AS fact_population,
                 c.gdp_ppp AS fact_gdp_ppp,
@@ -298,11 +391,45 @@ def get_stories(limit: int = 500) -> list[dict[str, Any]]:
             LEFT JOIN cia_country_facts c
                 ON lower(c.country_name) = lower(s.country)
             WHERE s.country IS NOT NULL AND s.country != ''
+            AND strftime('%Y', s.published_at) = ?
             ORDER BY published_at DESC
             LIMIT ?
-            """,
-            (limit,),
-        ).fetchall()
+            """
+            rows = conn.execute(sql, (str(year), limit)).fetchall()
+        else:
+            rows = conn.execute(
+                """
+                SELECT
+                    s.source,
+                    s.title,
+                    s.display_title,
+                    s.url,
+                    s.summary,
+                    s.published_at,
+                    s.place,
+                    s.country,
+                    s.lat,
+                    s.lon,
+                    s.topic,
+                    s.sport,
+                    s.league,
+                    s.team_home,
+                    s.team_away,
+                    c.capital AS fact_capital,
+                    c.population AS fact_population,
+                    c.gdp_ppp AS fact_gdp_ppp,
+                    c.area_total AS fact_area_total,
+                    c.government_type AS fact_government_type,
+                    c.economist_economic_rank AS fact_economist_economic_rank
+                FROM stories s
+                LEFT JOIN cia_country_facts c
+                    ON lower(c.country_name) = lower(s.country)
+                WHERE s.country IS NOT NULL AND s.country != ''
+                ORDER BY published_at DESC
+                LIMIT ?
+                """,
+                (fetch_limit,),
+            ).fetchall()
     stories: list[dict[str, Any]] = []
     for row in rows:
         item = dict(row)
@@ -321,6 +448,9 @@ def get_stories(limit: int = 500) -> list[dict[str, Any]]:
         else:
             item["country_facts"] = None
         stories.append(item)
+
+    if year is None:
+        stories = _apply_time_relevance_filter(stories, limit)
 
     # Attach verified related video when a social post links to this article.
     urls = list({s["url"] for s in stories})
@@ -360,6 +490,22 @@ def get_total_mapped_story_count() -> int:
             """
         ).fetchone()
     return row["n"] if row else 0
+
+
+def get_all_countries_baseline() -> list[dict[str, Any]]:
+    """
+    Return baseline info for every country in the CIA factbook (for chatbot context).
+    Ensures the bot can answer questions about any country even when there are no recent stories.
+    """
+    with get_connection() as conn:
+        rows = conn.execute(
+            """
+            SELECT country_name, capital, population, gdp_ppp, area_total, government_type
+            FROM cia_country_facts
+            ORDER BY country_name
+            """
+        ).fetchall()
+    return [dict(r) for r in rows]
 
 
 def get_cached_geocode(place: str) -> tuple[float, float, str | None] | None:
@@ -505,6 +651,24 @@ def _parse_published_ts(published_at: str | None) -> float:
         return 0.0
 
 
+def _published_days_ago(published_at: str | None) -> float | None:
+    """Return days since published, or None if unparseable."""
+    ts = _parse_published_ts(published_at)
+    if ts <= 0:
+        return None
+    delta = datetime.now(timezone.utc).timestamp() - ts
+    return delta / (24 * 3600)
+
+
+# Time-based relevance: stories age out; sparse regions keep stories longer.
+# If a country has many recent stories (>= RECENT_HIGH), use short window; else extend.
+RECENT_WINDOW_DAYS = 7
+MAX_AGE_DAYS_DEFAULT = 7
+MAX_AGE_DAYS_EXTENDED = 30
+RECENT_HIGH_THRESHOLD = 10  # >= this many in last 7 days -> 7-day max age
+RECENT_LOW_THRESHOLD = 3   # <= this many -> 30-day max age; between -> 14 days
+
+
 def _story_rank_score(
     story: dict[str, Any],
     country_name: str,
@@ -557,7 +721,7 @@ def get_country_detail(country_name: str) -> dict[str, Any]:
 
         stories_rows = conn.execute(
             """
-            SELECT source, title, display_title, url, summary, published_at, country
+            SELECT source, title, display_title, url, summary, published_at, country, topic
             FROM stories
             ORDER BY published_at DESC
             LIMIT 300
@@ -608,17 +772,35 @@ def get_country_detail(country_name: str) -> dict[str, Any]:
     economist_rankings = get_rankings_for_country(normalized)
     conflict_casualties = CONFLICT_CASUALTIES.get(normalized)
     top_sports_leagues = COUNTRY_TOP_LEAGUES.get(normalized)
+    wikipedia_snippet = None
+    try:
+        from app.historical_events import UNDER_REPORTED_NORMALIZED, fetch_wikipedia_country_snippet
+        if normalized and normalized.lower() in UNDER_REPORTED_NORMALIZED:
+            display_name = (label or {}).get("english_name", country_name) or country_name
+            wikipedia_snippet = fetch_wikipedia_country_snippet(display_name)
+    except Exception:
+        pass
+    # Economic snapshot from free sources (World Bank, IMF WEO, OECD). Replaces Economist/paywalled macro data.
+    econ_snapshot = {}
+    try:
+        from app.econ.snapshot import get_country_econ_snapshot
+        display_name = (label or {}).get("english_name", country_name) or matched_fact.get("country_name") or country_name
+        econ_snapshot = get_country_econ_snapshot(None, display_name)
+    except Exception:
+        pass
     return {
         "country_name": matched_fact.get("country_name") if matched_fact else country_name,
         "english_name": (label or {}).get("english_name", country_name),
         "original_name": (label or {}).get("original_name", country_name),
         "facts": matched_fact,
         "economist_rankings": economist_rankings,
+        "econ_snapshot": econ_snapshot,
         "graphic_detail_stories": graphic_detail_stories,
         "all_source_stories": all_source_stories,
         "source_counts": source_counts,
         "recent_stories": recent_stories,
         "conflict_casualties": conflict_casualties,
         "top_sports_leagues": top_sports_leagues or [],
+        "wikipedia_snippet": wikipedia_snippet,
     }
 

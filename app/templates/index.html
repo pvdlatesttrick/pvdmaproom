@@ -35,7 +35,12 @@
             <button class="map-tab" data-map-key="sports" type="button" role="menuitem">Sports</button>
           </div>
         </div>
-        <button id="chat-toggle-btn" class="chat-toggle-btn" type="button" title="Chat with PVD about the map"><span class="pvd-logo" aria-hidden="true"><svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="pvd-hair" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#f0e0a0"/><stop offset="100%" style="stop-color:#d4a84b"/></linearGradient></defs><circle cx="20" cy="22" r="12" fill="#f5d0b0"/><path d="M8 14 Q8 8 20 6 Q32 8 32 14 L32 20 Q32 24 20 26 Q8 24 8 20 Z" fill="url(#pvd-hair)"/><ellipse cx="16" cy="21" rx="2" ry="2.2" fill="#2c1810"/><ellipse cx="24" cy="21" rx="2" ry="2.2" fill="#2c1810"/><path d="M14 28 Q20 32 26 28" stroke="#c49070" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></span>PVD</button>
+        <div class="year-select-wrap" title="Select year for historical view (1000 BC to present)">
+          <label for="year-select-input" class="year-select-label">Year</label>
+          <input id="year-select-input" class="year-select-input" type="number" min="-1000" max="2030" step="1" placeholder="Current" aria-label="Year (negative for BC)" />
+          <span id="year-select-bc" class="year-select-bc" aria-hidden="true"></span>
+        </div>
+        <button id="chat-toggle-btn" class="chat-toggle-btn" type="button" data-action="toggle-pvd-chat" title="Chat with PVD about the map" aria-label="Open PVD chat"><span class="pvd-logo" aria-hidden="true"><svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="pvd-hair" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#f0e0a0"/><stop offset="100%" style="stop-color:#d4a84b"/></linearGradient></defs><circle cx="20" cy="22" r="12" fill="#f5d0b0"/><path d="M8 14 Q8 8 20 6 Q32 8 32 14 L32 20 Q32 24 20 26 Q8 24 8 20 Z" fill="url(#pvd-hair)"/><ellipse cx="16" cy="21" rx="2" ry="2.2" fill="#2c1810"/><ellipse cx="24" cy="21" rx="2" ry="2.2" fill="#2c1810"/><path d="M14 28 Q20 32 26 28" stroke="#c49070" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></span>PVD</button>
       </header>
       <div class="main-row">
         <div class="map-shell">
@@ -73,17 +78,26 @@
           <h3 class="section-title">Top sports leagues</h3>
           <div id="country-sports-leagues" class="sports-leagues-list"></div>
         </div>
+        <div id="country-major-teams-wrap" class="panel-focus-block" style="display:none;">
+          <h3 class="section-title">Major sports teams</h3>
+          <div id="country-major-teams" class="sports-leagues-list"></div>
+        </div>
         <div id="country-facts-wrap" class="panel-focus-block">
           <h3 class="section-title" id="country-facts-heading">Key facts</h3>
           <div id="country-facts" class="fact-grid"></div>
+        </div>
+        <div id="country-econ-snapshot-wrap" class="panel-focus-block econ-snapshot-wrap" style="display:none;">
+          <h3 class="section-title">Economic snapshot</h3>
+          <div id="country-econ-snapshot" class="econ-snapshot-grid"></div>
+          <p class="econ-snapshot-sources muted">Sources: World Bank, IMF, OECD (where available)</p>
         </div>
         <div id="country-ai-summary-section" class="ai-summary-section">
           <button id="country-ai-summary-btn" type="button" class="ai-summary-btn">AI summary</button>
           <div id="country-ai-summary-result" class="ai-summary-result" aria-live="polite"></div>
         </div>
         <div id="economist-rankings-section" class="economist-rankings-section" style="display:none;">
-          <h3 class="section-title economist-rankings-heading">Economist-style rankings</h3>
-          <p class="economist-rankings-desc">Country rank in key indices (updated when data is refreshed)</p>
+          <h3 class="section-title economist-rankings-heading">Legacy rankings (optional)</h3>
+          <p class="economist-rankings-desc">Country rank in key indices (optional data; economic data is from World Bank / IMF / OECD)</p>
           <div id="economist-rankings-list" class="economist-rankings-list"></div>
         </div>
         <div id="graphic-detail-section" class="graphic-detail-section" style="display:none;">

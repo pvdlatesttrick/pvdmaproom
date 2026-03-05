@@ -10,7 +10,7 @@ from flask import Flask, jsonify, render_template, request
 
 from app.ai_summary import summarize_country, summarize_story
 from app.chat import chat as chat_reply
-from app.db import get_country_detail, get_stories, get_db_path, get_total_mapped_story_count, init_db
+from app.db import get_all_countries_baseline, get_country_detail, get_stories, get_db_path, get_total_mapped_story_count, init_db
 from app.ingest import run_ingest
 from app.isw_frontlines import ISW_FRONTLINES_GEOJSON
 
@@ -81,7 +81,26 @@ def create_app() -> Flask:
 
     @app.get("/api/stories")
     def api_stories():
-        return jsonify(get_stories())
+        year_param = request.args.get("year", "").strip()
+        year: int | None = None
+        if year_param:
+            try:
+                year = int(year_param)
+            except ValueError:
+                pass
+        stories = get_stories(limit=500, year=year)
+        if year is not None:
+            from app.historical_events import fetch_historical_events
+            try:
+                historical = fetch_historical_events(year)
+                seen_urls = {s.get("url") for s in stories}
+                for h in historical:
+                    if h.get("url") not in seen_urls:
+                        stories.append(h)
+                        seen_urls.add(h.get("url"))
+            except Exception as e:
+                logging.getLogger(__name__).warning("Historical events fetch failed: %s", e)
+        return jsonify(stories)
 
     @app.get("/api/status")
     def api_status():
@@ -135,11 +154,13 @@ def create_app() -> Flask:
         map_key = (data.get("map_key") or "").strip() or None
         country = (data.get("country") or "").strip() or None
         stories = get_stories(limit=250)
+        country_baseline = get_all_countries_baseline()
         reply = chat_reply(
             user_message=message,
             stories=stories,
             map_key=map_key,
             country=country,
+            country_baseline=country_baseline,
         )
         if reply is None:
             return jsonify({
@@ -156,6 +177,14 @@ def create_app() -> Flask:
             country_name = (data.get("country") or "").strip()
             if not country_name:
                 return jsonify({"error": "country name is required"}), 400
+            map_key = (data.get("map_key") or "").strip() or None
+            year_val = data.get("year")
+            year_int: int | None = None
+            if year_val is not None:
+                try:
+                    year_int = int(year_val)
+                except (TypeError, ValueError):
+                    pass
             try:
                 detail = get_country_detail(country_name)
                 facts = None
@@ -163,7 +192,7 @@ def create_app() -> Flask:
                     facts = {k: v for k, v in detail["facts"].items() if v}
             except Exception:
                 facts = None
-            summary_text = summarize_country(country_name, facts)
+            summary_text = summarize_country(country_name, facts, map_key=map_key, year=year_int)
         elif kind == "story":
             title = (data.get("title") or "").strip()
             summary = (data.get("summary") or "").strip()

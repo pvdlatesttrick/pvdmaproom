@@ -12,8 +12,9 @@ Beginner-friendly project that plots news stories on a live world map.
 - Stories are stored in SQLite; the same story can appear in multiple countries when relevant
 - Place names are guessed with a stricter heuristic and geocoded with cache. If location cannot be inferred, an optional **LLM** (OpenAI-compatible API) can infer relevant countries so the story is added to the map only where it is relevant
 - Source logos are shown in map markers and in each story popup. Economist, Washington Post, and NYT use `/static/logos/economist.png`, `washingtonpost.png`, `nyt.png` if present; otherwise a CDN fallback is used (and all marker images have an `onerror` fallback to a generic icon)
-- Story popups include CIA World Factbook fields for the resolved country (capital, population, GDP PPP, area, government type)
-- Country borders are clickable; clicking a country highlights it and opens a side panel with CIA facts plus Economist and recent country stories
+- Story popups include CIA World Factbook fields for the resolved country (capital, population, area, government type)
+- **Country-level economic data** (Economics map) comes from **free, open sources**: **World Bank Indicators API** (primary), **IMF World Economic Outlook** (supplementary), and **OECD Statistics** (optional, for OECD members). There is no dependence on paywalled or licensed APIs (e.g. The Economist dashboards) for macro data.
+- Country borders are clickable; clicking a country highlights it and opens a side panel with CIA facts, an economic snapshot (World Bank/IMF/OECD), and recent country stories
 - Country side panel title shows original/local country name with English in parentheses
 
 ## Project layout
@@ -21,6 +22,11 @@ Beginner-friendly project that plots news stories on a live world map.
 - `app/main.py` - Flask app + routes
 - `app/ingest.py` - ingestion command (`python -m app.ingest`)
 - `app/db.py` - SQLite setup and queries
+- `app/econ/` - **Economic data from free sources** (no paywalled APIs):
+  - `world_bank.py` - World Bank Indicators API (GDP, growth, inflation, unemployment)
+  - `imf_weo.py` - IMF World Economic Outlook (supplementary)
+  - `oecd.py` - OECD Statistics (optional, OECD members only)
+  - `snapshot.py` - Unified `get_country_econ_snapshot(iso3, country_name)` for the Economics map
 - `app/sources/` - source-specific fetchers
 - `app/templates/index.html` - Page structure and map containers
 - `app/static/map.css` - Map and UI styles (extracted from index)

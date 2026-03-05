@@ -99,6 +99,33 @@ html, body {
 .maps-dropdown.open .maps-dropdown-trigger .chevron {
   transform: rotate(180deg);
 }
+.year-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.year-select-label {
+  font-size: 0.75rem;
+  color: var(--live-muted);
+  white-space: nowrap;
+}
+.year-select-input {
+  width: 4rem;
+  padding: 4px 6px;
+  font-size: 0.8125rem;
+  background: var(--live-panel);
+  border: 1px solid var(--live-border);
+  border-radius: 4px;
+  color: var(--live-text);
+}
+.year-select-input::placeholder {
+  color: var(--live-muted);
+}
+.year-select-bc {
+  font-size: 0.7rem;
+  color: var(--live-muted);
+  font-weight: 600;
+}
 .maps-dropdown-panel {
   position: absolute;
   top: 100%;
@@ -400,6 +427,20 @@ html, body {
   left: 1px;
   top: 0;
 }
+.custom-pin .pin-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.custom-pin .pin-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
 .topic-badge .topic-icon-img {
   width: 9px;
   height: 9px;
@@ -480,6 +521,31 @@ html, body {
 }
 .side-panel .fact-grid b {
   color: var(--live-text);
+}
+.econ-snapshot-wrap {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--live-border);
+}
+.econ-snapshot-grid {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.econ-snapshot-grid b {
+  color: var(--live-text);
+}
+.econ-snapshot-sources {
+  font-size: 0.75rem;
+  margin-top: 6px;
+}
+.wikipedia-snippet {
+  font-size: 0.85rem;
+  line-height: 1.35;
+  padding-top: 6px;
+  border-top: 1px solid var(--live-border);
+  margin-top: 8px;
 }
 .graphic-detail-section {
   margin-top: 16px;

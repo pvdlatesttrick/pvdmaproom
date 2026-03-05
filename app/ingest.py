@@ -35,7 +35,9 @@ from app.factbook import (
     lookup_country_fact,
     normalize_country_name,
 )
-from app.ai_summary import generate_ai_title
+from app.ai_summary import _client, classify_topic, generate_ai_title
+from app.geo.location import attach_location
+from app.geo.stadiums import get_stadium_for_team
 from app.location_inference import infer_relevant_countries
 from app.sources.world_feeds import fetch_all_world_sources
 from app.sources.x_reports import fetch_verified_x_reports
@@ -123,7 +125,128 @@ COUNTRY_ALIAS_TO_NAME = {
     "northern iran": "Iran",
     "kurdistan": "Iraq",
     "iraqi kurdistan": "Iraq",
+    "brazilian": "Brazil",
 }
+# Sports clubs/leagues/terms -> country for geocoding sports stories (e.g. Chelsea -> UK).
+SPORTS_ENTITY_TO_COUNTRY: dict[str, str] = {
+    "chelsea": "United Kingdom",
+    "premier league": "United Kingdom",
+    "manchester united": "United Kingdom",
+    "manchester city": "United Kingdom",
+    "liverpool fc": "United Kingdom",
+    "arsenal": "United Kingdom",
+    "tottenham": "United Kingdom",
+    "stamford bridge": "United Kingdom",
+    "barcelona": "Spain",
+    "real madrid": "Spain",
+    "la liga": "Spain",
+    "bayern": "Germany",
+    "bundesliga": "Germany",
+    "serie a": "Italy",
+    "juventus": "Italy",
+    "ac milan": "Italy",
+    "inter milan": "Italy",
+    "ligue 1": "France",
+    "paris saint-germain": "France",
+    "psg": "France",
+    "atletico madrid": "Spain",
+    "borussia dortmund": "Germany",
+    "dortmund": "Germany",
+    "world cup": "World",
+    "euros": "Europe",
+    "uefa champions league": "Europe",
+    "uefa europa league": "Europe",
+    "copa america": "South America",
+    "copa américa": "South America",
+    "afcon": "Africa",
+    "asian cup": "Asia",
+}
+SPORTS_SOURCE_KEYS = frozenset({
+    "espn_news", "espn_nfl", "espn_nba", "espn_mlb", "espn_nhl", "espn_soccer",
+    "espn_ncf", "espn_ncb", "espn_ncaa", "espn_tennis", "on3", "nbcsports", "the_athletic",
+    "bbc_sport", "sky_sports_football", "guardian_football",
+})
+
+# League/category -> sport for ingest metadata (international + US).
+LEAGUE_TO_SPORT: dict[str, str] = {
+    "nba": "basketball",
+    "ncaa_basketball": "basketball",
+    "euroleague": "basketball",
+    "fiba": "basketball",
+    "ncaa_football": "football",
+    "nfl": "football",
+    "mlb": "baseball",
+    "ncaa_baseball": "baseball",
+    "nhl": "ice_hockey",
+    "khl": "ice_hockey",
+    "ahl": "ice_hockey",
+    "shl": "ice_hockey",
+    "liiga": "ice_hockey",
+    "czech_extraliga": "ice_hockey",
+    "premier_league": "soccer",
+    "la_liga": "soccer",
+    "serie_a": "soccer",
+    "bundesliga": "soccer",
+    "ligue_1": "soccer",
+    "uefa_champions_league": "soccer",
+    "uefa_europa_league": "soccer",
+    "mls": "soccer",
+    "world_cup": "soccer",
+    "euros": "soccer",
+    "copa_america": "soccer",
+    "afcon": "soccer",
+    "asian_cup": "soccer",
+    "ncaa_tennis": "tennis",
+    "ncaa_lacrosse": "lacrosse",
+    "ncaa_soccer": "soccer",
+    "sports": "soccer",
+}
+
+# Text patterns -> (team_key, sport) for precise team/stadium lookup.
+TEAM_TEXT_TO_KEY_AND_SPORT: list[tuple[re.Pattern[str], str, str]] = [
+    (re.compile(r"\blsu\b", re.I), "lsu-tigers-football", "football"),
+    (re.compile(r"\bauburn\b.*(?:basketball|sec tournament|ncaa tournament|march madness)", re.I), "auburn-tigers-basketball", "basketball"),
+    (re.compile(r"\bauburn\b", re.I), "auburn-tigers-football", "football"),
+    (re.compile(r"\balabama\b.*(?:basketball|sec)", re.I), "alabama-crimson-tide-basketball", "basketball"),
+    (re.compile(r"\balabama\b", re.I), "alabama-crimson-tide-football", "football"),
+    (re.compile(r"\bohio state\b", re.I), "ohio-state-buckeyes-football", "football"),
+    (re.compile(r"\bgeorgia\s+bulldogs\b", re.I), "georgia-bulldogs-football", "football"),
+    (re.compile(r"\bclemson\b", re.I), "clemson-tigers-football", "football"),
+    (re.compile(r"\bmichigan\s+wolverines\b", re.I), "michigan-wolverines-football", "football"),
+    (re.compile(r"\btexas\s+longhorns\b", re.I), "texas-longhorns-football", "football"),
+    (re.compile(r"\blakers\b", re.I), "los-angeles-lakers", "basketball"),
+    (re.compile(r"\bceltics\b", re.I), "boston-celtics", "basketball"),
+    (re.compile(r"\byankees\b", re.I), "new-york-yankees", "baseball"),
+    (re.compile(r"\bcowboys\b", re.I), "dallas-cowboys", "football"),
+    (re.compile(r"\bpackers\b", re.I), "green-bay-packers", "football"),
+    (re.compile(r"\bbears\b.*(?:nfl|chicago)", re.I), "chicago-bears", "football"),
+    (re.compile(r"\bnew orleans saints\b|\bsaints\b", re.I), "new-orleans-saints", "football"),
+    (re.compile(r"\bbruins\b", re.I), "boston-bruins", "ice_hockey"),
+    (re.compile(r"\bmaple leafs\b", re.I), "toronto-maple-leafs", "ice_hockey"),
+    (re.compile(r"\bmanchester united\b|\bman united\b|\bman u\b", re.I), "manchester-united", "soccer"),
+    (re.compile(r"\bmanchester city\b|\bman city\b", re.I), "manchester-city", "soccer"),
+    (re.compile(r"\bliverpool\s+f\.?c\.?\b|\bliverpool fc\b", re.I), "liverpool-fc", "soccer"),
+    (re.compile(r"\barsenal\b", re.I), "arsenal", "soccer"),
+    (re.compile(r"\bchelsea\b", re.I), "chelsea", "soccer"),
+    (re.compile(r"\btottenham\b|\bspurs\b", re.I), "tottenham", "soccer"),
+    (re.compile(r"\bbarcelona\b|\bbarca\b", re.I), "barcelona", "soccer"),
+    (re.compile(r"\breal madrid\b", re.I), "real-madrid", "soccer"),
+    (re.compile(r"\batletico madrid\b", re.I), "atletico-madrid", "soccer"),
+    (re.compile(r"\bbayern\b", re.I), "bayern-munich", "soccer"),
+    (re.compile(r"\bborussia dortmund\b|\bdortmund\b", re.I), "borussia-dortmund", "soccer"),
+    (re.compile(r"\bjuventus\b|\bjuve\b", re.I), "juventus", "soccer"),
+    (re.compile(r"\bac milan\b", re.I), "ac-milan", "soccer"),
+    (re.compile(r"\binter milan\b|\binter\b", re.I), "inter-milan", "soccer"),
+    (re.compile(r"\bparis saint-germain\b|\bpsg\b", re.I), "paris-saint-germain", "soccer"),
+]
+# Source-based topic shortcuts: skip model when source is clearly single-topic.
+CONFLICT_SOURCE_KEYS = frozenset({
+    "x_isw", "x_liveuamap",
+    "substack_rochan", "substack_counteroffensive", "substack_warwickpowell", "substack_professorbonk",
+})
+ECONOMICS_SOURCE_KEYS = frozenset({
+    "economist_graphic_detail",
+})
 SOURCE_DEFAULT_COUNTRY = {
     "irrawaddy_myanmar": "Myanmar",
     "gov_us_dod_releases": "United States",
@@ -177,6 +300,7 @@ SOURCE_DEFAULT_COUNTRY = {
     "economist": "United Kingdom",
     "ft": "United Kingdom",  # Financial Times
     "guardian": "United Kingdom",
+    "guardian_football": "United Kingdom",
     "aljazeera": None,  # Pan-Middle East
         "dw": "Germany",
 
@@ -409,6 +533,13 @@ def _extract_explicit_country(
         return "United Kingdom"
 
     lower_text = text.lower()
+    source_key = str(story.get("source", "")).lower()
+
+    # For sports sources, resolve clubs/leagues first (e.g. Chelsea -> UK, Brazilian -> Brazil)
+    if source_key in SPORTS_SOURCE_KEYS:
+        for entity, country in SPORTS_ENTITY_TO_COUNTRY.items():
+            if entity in lower_text:
+                return country
 
     for alias, canonical in COUNTRY_ALIAS_TO_NAME.items():
         if re.search(rf"\b{re.escape(alias)}\b", lower_text):
@@ -417,6 +548,110 @@ def _extract_explicit_country(
     for pattern, country_name in country_patterns:
         if pattern.search(text):
             return country_name
+    return None
+
+
+def _infer_league_from_source_and_text(story: dict[str, Any]) -> str | None:
+    """Infer league key from source and title/summary (US + international)."""
+    src = (story.get("source") or "").lower()
+    text = f"{story.get('title', '')} {story.get('summary', '')}".lower()
+    if "espn_nba" in src or ("nba" in text and "basketball" in text or "nba" in src):
+        return "nba"
+    if "espn_nfl" in src or ("nfl" in text and "football" in text):
+        return "nfl"
+    if "espn_mlb" in src or "mlb" in text:
+        return "mlb"
+    if "espn_nhl" in src or "nhl" in text:
+        return "nhl"
+    if "espn_ncf" in src or "ncf" in text:
+        return "ncaa_football"
+    if "espn_ncb" in src or "ncb" in text or "march madness" in text:
+        return "ncaa_basketball"
+    if "espn_ncaa" in src:
+        if "football" in text or "sec" in text or "big ten" in text:
+            return "ncaa_football"
+        if "basketball" in text:
+            return "ncaa_basketball"
+        if "baseball" in text:
+            return "ncaa_baseball"
+        return "ncaa_basketball"
+    if "champions league" in text or "uefa" in text:
+        return "uefa_champions_league"
+    if "europa league" in text:
+        return "uefa_europa_league"
+    if "premier league" in text or "epl" in text:
+        return "premier_league"
+    if "la liga" in text:
+        return "la_liga"
+    if "serie a" in text:
+        return "serie_a"
+    if "bundesliga" in text:
+        return "bundesliga"
+    if "ligue 1" in text:
+        return "ligue_1"
+    if "world cup" in text:
+        return "world_cup"
+    if "euro " in text or "euros " in text or "euro 20" in text:
+        return "euros"
+    if "copa américa" in text or "copa america" in text:
+        return "copa_america"
+    if "afcon" in text or "africa cup" in text:
+        return "afcon"
+    if "asian cup" in text:
+        return "asian_cup"
+    if "espn_soccer" in src or "sky_sports_football" in src or "bbc_sport" in src:
+        if "premier" in text:
+            return "premier_league"
+        if "la liga" in text:
+            return "la_liga"
+        return "uefa_champions_league" if "champions" in text else "mls"
+    return None
+
+
+def _infer_sports_metadata(story: dict[str, Any]) -> dict[str, Any]:
+    """
+    Infer sport, league, team_home, team_away from story (normalized keys).
+    Used for sports map metadata and stadium lookup.
+    """
+    text = f"{story.get('title', '')} {story.get('summary', '')}"
+    league = _infer_league_from_source_and_text(story)
+    sport = LEAGUE_TO_SPORT.get(league, "soccer") if league else None
+    team_keys_seen: list[str] = []
+    for pattern, team_key, sport_from_team in TEAM_TEXT_TO_KEY_AND_SPORT:
+        if pattern.search(text) and team_key not in team_keys_seen:
+            team_keys_seen.append(team_key)
+            if not sport:
+                sport = sport_from_team
+    team_home = team_keys_seen[0] if team_keys_seen else None
+    team_away = team_keys_seen[1] if len(team_keys_seen) > 1 else None
+    if not sport and league:
+        sport = LEAGUE_TO_SPORT.get(league)
+    return {
+        "sport": sport,
+        "league": league,
+        "team_home": team_home,
+        "team_away": team_away,
+    }
+
+
+def _resolve_sports_location(
+    story: dict[str, Any], sports_meta: dict[str, Any]
+) -> tuple[str, float, float, str] | None:
+    """
+    If story is about a team with a known stadium, return (country, lat, lon, place).
+    Otherwise return None so caller falls back to country/geocode.
+    """
+    for key in ("team_home", "team_away"):
+        team_key = sports_meta.get(key)
+        if not team_key:
+            continue
+        stadium = get_stadium_for_team(team_key)
+        if stadium:
+            country = stadium.get("country") or "United States"
+            lat = float(stadium.get("lat", 0))
+            lon = float(stadium.get("lon", 0))
+            place = stadium.get("stadium_name") or stadium.get("city") or team_key
+            return (country, lat, lon, place)
     return None
 
 
@@ -529,7 +764,7 @@ _PRIMARY_NEWS_SOURCES = frozenset({
     "cnn", "nbc", "sky_news",
     "espn_news", "espn_nfl", "espn_nba", "espn_mlb", "espn_nhl", "espn_soccer",
     "espn_ncf", "espn_ncb", "espn_ncaa", "espn_tennis",
-    "on3", "nbcsports", "the_athletic",
+    "on3", "nbcsports", "the_athletic", "bbc_sport", "sky_sports_football", "guardian_football",
 })
 
 
@@ -705,6 +940,38 @@ def _ensure_display_title(story: dict[str, Any]) -> None:
         pass
 
 
+def _topic_from_source(story: dict[str, Any]) -> str | None:
+    """
+    Return a topic if the source or URL clearly implies one (sports-only, conflict tracker, economics-only).
+    Only fall back to the model when this returns None.
+    """
+    url = (story.get("url") or "").lower()
+    if "/sports/" in url:
+        return "sports"
+    src = (story.get("source") or "").strip().lower()
+    if src in SPORTS_SOURCE_KEYS:
+        return "sports"
+    if src in CONFLICT_SOURCE_KEYS:
+        return "conflicts"
+    if src in ECONOMICS_SOURCE_KEYS:
+        return "economics"
+    return None
+
+
+def _resolve_story_topic(story: dict[str, Any], client: Any) -> str:
+    """Set story topic: source shortcut first, then classifier model, else 'geopolitics'."""
+    shortcut = _topic_from_source(story)
+    if shortcut is not None:
+        return shortcut
+    if client:
+        return classify_topic(
+            client,
+            story.get("title", ""),
+            story.get("summary", ""),
+        )
+    return "geopolitics"
+
+
 def _record_article_video_links_if_x(story: dict[str, Any]) -> None:
     """When an X post links to a news article, record that so we can embed the video only for that article (verified)."""
     source = str(story.get("source", "")).strip().lower()
@@ -800,6 +1067,7 @@ def run_ingest() -> None:
             added_this_run[norm] = added_this_run.get(norm, 0) + 1
         total_added += 1
 
+    ai_client = _client()
     for story in incoming:
         if story.get("source") == "economist_podcast":
             story["place"] = "World"
@@ -807,7 +1075,34 @@ def run_ingest() -> None:
             story["lat"] = 20.0
             story["lon"] = 0.0
             _ensure_display_title(story)
+            story["topic"] = _resolve_story_topic(story, ai_client)
             upsert_story(story)
+            continue
+        source_key = str(story.get("source", "")).lower()
+        story["topic"] = _resolve_story_topic(story, ai_client)
+        if source_key in SPORTS_SOURCE_KEYS:
+            sports_meta = _infer_sports_metadata(story)
+            if sports_meta.get("sport"):
+                story["sport"] = sports_meta["sport"]
+            if sports_meta.get("league"):
+                story["league"] = sports_meta["league"]
+            if sports_meta.get("team_home"):
+                story["team_home"] = sports_meta["team_home"]
+            if sports_meta.get("team_away"):
+                story["team_away"] = sports_meta["team_away"]
+        attach_location(story)
+        if isinstance(story.get("lat"), (int, float)) and isinstance(story.get("lon"), (int, float)):
+            country = story.get("country") or ""
+            place = story.get("place") or story.get("place_name") or ""
+            min_score = _min_score_for(country)
+            if country and _is_highly_relevant(story, country, place, min_score=min_score):
+                _ensure_display_title(story)
+                upsert_story(story)
+                _record_added(country)
+                _record_article_video_links_if_x(story)
+                fact = lookup_country_fact(factbook_index, country)
+                if fact is not None:
+                    upsert_country_fact(fact)
             continue
         resolved = _resolve_story_location(geocoder, story, country_patterns)
         if resolved is not None:
@@ -819,6 +1114,7 @@ def run_ingest() -> None:
                 story["lat"] = lat
                 story["lon"] = lon
                 _ensure_display_title(story)
+                story["topic"] = _resolve_story_topic(story, ai_client)
                 upsert_story(story)
                 _record_added(country)
                 _record_article_video_links_if_x(story)
@@ -855,6 +1151,7 @@ def run_ingest() -> None:
             if not _is_highly_relevant(story, country, country_name, min_score=min_score):
                 continue
             _ensure_display_title(story)
+            story["topic"] = _resolve_story_topic(story, ai_client)
             upsert_story(story)
             _record_added(country)
             _record_article_video_links_if_x(story)

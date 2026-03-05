@@ -113,10 +113,14 @@ WORLD_FEEDS: list[dict[str, str]] = [
     {"source": "espn_ncb", "feed_url": "https://www.espn.com/espn/rss/ncb/news"},
     {"source": "espn_ncaa", "feed_url": "https://www.espn.com/espn/rss/ncaa/news"},
     {"source": "espn_tennis", "feed_url": "https://www.espn.com/espn/rss/tennis/news"},
-    # Additional sports (Sports map)
+    # Additional sports (Sports map) – Premier League, global football
     {"source": "on3", "feed_url": "https://www.on3.com/feed/"},
     {"source": "nbcsports", "feed_url": "https://www.nbcsports.com/feed/"},
     {"source": "the_athletic", "feed_url": "https://theathletic.com/rss-feed/"},
+    {"source": "bbc_sport", "feed_url": "https://feeds.bbci.co.uk/sport/rss.xml"},
+    {"source": "sky_sports_football", "feed_url": "https://www.skysports.com/rss/11095"},
+    # International football (Premier League, Champions League, European leagues)
+    {"source": "guardian_football", "feed_url": "https://www.theguardian.com/football/series/footballweekly/rss.xml"},
 ]
 MAX_STORIES_PER_FEED = 200
 
