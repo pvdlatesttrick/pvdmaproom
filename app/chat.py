@@ -2,6 +2,11 @@
 AI chatbot for the map: answers questions using ingested articles and think-tank data.
 Aligns with the analytical perspective of WSJ, The Economist, Hudson Institute, AEI, The Dispatch.
 Supports OpenAI (OPENAI_API_KEY) or Groq free tier (GROQ_API_KEY) automatically.
+Groq model fallback order (all 500K TPD free tier):
+  1. llama-3.1-8b-instant  (500K TPD)
+  2. meta-llama/llama-4-scout-17b-16e-instruct (500K TPD)
+  3. meta-llama/llama-4-maverick-17b-128e-instruct (500K TPD)
+If all Groq models are rate-limited, returns None gracefully.
 """
 from __future__ import annotations
 import logging
@@ -24,11 +29,20 @@ if OPENAI_API_KEY:
 elif GROQ_API_KEY:
     _ACTIVE_KEY = GROQ_API_KEY
     _ACTIVE_BASE_URL = "https://api.groq.com/openai/v1"
-    _DEFAULT_MODEL = "llama-3.3-70b-versatile"
+    # llama-3.1-8b-instant: 500K tokens/day free tier (5x more than llama-3.3-70b)
+    _DEFAULT_MODEL = "llama-3.1-8b-instant"
 else:
     _ACTIVE_KEY = ""
     _ACTIVE_BASE_URL = None
-    _DEFAULT_MODEL = "gpt-4o-mini"
+    _DEFAULT_MODEL = "llama-3.1-8b-instant"
+
+# Groq fallback model list - all have 500K TPD on free tier.
+# When one hits its daily limit (429), the next is tried automatically.
+GROQ_FALLBACK_MODELS = [
+    "llama-3.1-8b-instant",
+    "meta-llama/llama-4-scout-17b-16e-instruct",
+    "meta-llama/llama-4-maverick-17b-128e-instruct",
+]
 
 CHAT_MODEL = os.getenv("CHAT_MODEL", os.getenv("SUMMARY_MODEL", _DEFAULT_MODEL)).strip()
 
@@ -158,6 +172,12 @@ def _build_country_baseline_text(country_baseline: list[dict[str, Any]], max_cha
     return "Country reference (every country below has embedded facts; use this when the user asks about a country, including when there are no recent articles for it):\n" + "".join(lines)
 
 
+def _is_rate_limit_error(exc: Exception) -> bool:
+    """Return True if the exception is a Groq/OpenAI 429 rate-limit error."""
+    msg = str(exc).lower()
+    return "429" in msg or "rate_limit_exceeded" in msg or "rate limit" in msg
+
+
 def chat(
     user_message: str,
     stories: list[dict[str, Any]],
@@ -166,40 +186,70 @@ def chat(
     country_baseline: list[dict[str, Any]] | None = None,
 ) -> str | None:
     """
-    Reply to the user using the given stories as context. Returns the assistant reply or None if API unavailable.
-    country_baseline: optional list of per-country facts (from get_all_countries_baseline) so every country has embedded info.
+    Reply to the user using the given stories as context.
+    Returns the assistant reply or None if API unavailable.
+    Automatically falls back through GROQ_FALLBACK_MODELS when a 429 is hit,
+    so chat keeps working even when one model's daily quota is exhausted.
     """
     if not (user_message or "").strip():
         return None
+
     client = _client()
     if not client:
         return None
+
     prioritized = _prioritize_stories_for_chat(stories)
     context = _build_context_from_stories(prioritized)
+
     baseline_block = ""
     if country_baseline:
         baseline_block = _build_country_baseline_text(country_baseline)
+
     map_note = ""
     if map_key:
         map_note = f"\nCurrent map view: {map_key}."
     if country:
         map_note += f" User may be interested in: {country}."
+
     user_content = ""
     if baseline_block:
         user_content = baseline_block + "\n\n"
     user_content += f"Recent reporting and data from the map:\n\n{context}\n\n---\nUser question:{map_note}\n\n{user_message.strip()}"
-    try:
-        resp = client.chat.completions.create(
-            model=CHAT_MODEL,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_content},
-            ],
-            max_tokens=1200,
-            temperature=0.4,
-        )
-        text = (resp.choices[0].message.content or "").strip()
-        return text if text else None
-    except Exception as e:
-        log.warning("Chat API call failed: %s", e)
-        return None
+
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": user_content},
+    ]
+
+    # Build the list of models to try.
+    # If using Groq, cycle through fallback models on 429.
+    # If using OpenAI, only try the configured model.
+    if _ACTIVE_BASE_URL and "groq" in _ACTIVE_BASE_URL:
+        models_to_try = [CHAT_MODEL] + [
+            m for m in GROQ_FALLBACK_MODELS if m != CHAT_MODEL
+        ]
+    else:
+        models_to_try = [CHAT_MODEL]
+
+    for model in models_to_try:
+        try:
+            resp = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                max_tokens=1200,
+                temperature=0.4,
+            )
+            text = (resp.choices[0].message.content or "").strip()
+            if text:
+                if model != CHAT_MODEL:
+                    log.info("Chat: used fallback model %s", model)
+                return text
+        except Exception as e:
+            if _is_rate_limit_error(e):
+                log.warning("Chat: model %s hit rate limit, trying next fallback. Error: %s", model, e)
+                continue
+            log.warning("Chat API call failed: %s", e)
+            return None
+
+    log.warning("Chat: all Groq fallback models exhausted (all hit daily rate limits).")
+    return None

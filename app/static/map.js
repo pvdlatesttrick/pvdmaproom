@@ -284,7 +284,7 @@ let currentBorderYear = 2025;
 let worldCountryGeoJson = null;
 const mapContexts = {};
 /** Topic -> marker layer; populated after initMapContexts. Used by addStoryToMap. */
-let layersByMapKey = {};
+let layersByMapKey = {}; let allVisibleStories = []; let allCountryMajorEvents = {};
 
 function truncate(text, maxLen = 240) {
   if (!text) return "";
@@ -1147,7 +1147,7 @@ async function openCountryPanel(countryName, mapKey) {
   graphicDetailList.innerHTML = "";
   allSourcesListEl.innerHTML = "";
   storyListEl.innerHTML = "";
-  sidePanel.classList.add("open");
+  filterPinsForCountry(countryName);   sidePanel.classList.add("open");
   sidePanel.dataset.currentCountry = "";
   sidePanel.dataset.panelMapKey = mapKey || "";
 
@@ -1492,7 +1492,7 @@ function addStoryToMap(story, countryMajorEvents) {
   layerGroup.addLayer(marker);
 }
 
-async function refreshStories() {
+function filterPinsForCountry(countryName) {   Object.keys(layersByMapKey).forEach((topic) => layersByMapKey[topic].clearLayers());   const stories = countryName ? allVisibleStories.filter((s) => (s.country || "").toLowerCase() === countryName.toLowerCase()) : allVisibleStories;   const sportsSpread = spreadSportsPins(stories.filter((s) => (s.topic || "geopolitics") === "sports"));   stories.forEach((s) => {     if ((s.topic || "geopolitics") !== "sports") addStoryToMap(s, allCountryMajorEvents);   });   sportsSpread.forEach((s) => addStoryToMap(s, allCountryMajorEvents)); } async function refreshStories() {
   const overlay = document.getElementById("map-loading-overlay");
   if (overlay) overlay.classList.remove("hidden");
   try {
@@ -1511,7 +1511,7 @@ async function refreshStories() {
       return true;
     });
     const countryMajorEvents = buildCountryMajorEvents(visible);
-    const byTopic = { economics: [], geopolitics: [], conflicts: [], sports: [] };
+    allVisibleStories = visible;   allCountryMajorEvents = countryMajorEvents;   const byTopic = { economics: [], geopolitics: [], conflicts: [], sports: [] };
     visible.forEach((s) => {
       const topic = s.topic || "geopolitics";
       const bucket = byTopic[topic] || byTopic.geopolitics;
