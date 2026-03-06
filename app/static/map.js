@@ -1040,11 +1040,11 @@ function relatedVideoEmbedHtml(videoUrl) {
 function toBestReaderUrl(url, sourceKey) {
   const raw = String(url || "").trim();
   if (!raw || raw === "#") return "#";
-  const paywalled = ["wsj", "economist", "economist_asia", "economist_mea",
-    "economist_graphic_detail", "washingtonpost", "nyt"];
-  if (paywalled.includes(String(sourceKey || "").toLowerCase())) {
-    return `https://archive.ph/newest/${raw}`;
-  }
+  const src = String(sourceKey || "").toLowerCase();
+  const directUrlSources = ["wsj", "economist", "economist_asia", "economist_mea", "economist_graphic_detail"];
+  if (directUrlSources.includes(src)) return raw;
+  const archiveSources = ["washingtonpost", "nyt"];
+  if (archiveSources.includes(src)) return `https://archive.ph/newest/${raw}`;
   const stripped = raw.replace(/^https?:\/\//i, "");
   return `https://r.jina.ai/http://${stripped}`;
 }
@@ -1404,8 +1404,8 @@ function popupHtml(story, countryMajorEvents) {
   const briefEventSummary = countryEvent?.brief_summary || summary;
   const sourceHeadline = countryEvent?.source_headline || safeTitle;
   const newBadge = isStoryNew(story.published_at) ? '<span class="popup-new-badge" title="Published in the last 2 hours">NEW</span>' : '';
-  const paywalled = ["wsj", "economist", "economist_asia", "economist_mea", "economist_graphic_detail", "washingtonpost", "nyt"];
-  const archiveLink = paywalled.includes(String(story.source || "").toLowerCase())
+  const archiveSources = ["washingtonpost", "nyt"];
+  const archiveLink = archiveSources.includes(String(story.source || "").toLowerCase())
     ? ` <a href="https://archive.ph/newest/${safeUrl}" target="_blank" rel="noopener noreferrer" style="font-size:0.75em; opacity:0.6; margin-left:6px;">archive</a>`
     : "";
   return `
