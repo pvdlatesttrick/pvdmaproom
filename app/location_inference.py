@@ -18,7 +18,7 @@ from typing import Any
 
 log = logging.getLogger(__name__)
 
-LOCATION_MODEL = os.getenv("LOCATION_MODEL", "gpt-4o-mini").strip()
+from app.ai_summary import CLASSIFIER_MODEL
 
 SYSTEM_PROMPT = """You are a geography classifier for news articles. Given the title and summary of a news story, output a JSON array of country names (English, as commonly used e.g. "United States", "Iran", "Ukraine") that the article is directly relevant to. Include only countries where the story is clearly about that place (politics, events, people, conflict, economy there). Output nothing else—only a JSON array of strings, e.g. ["Ukraine", "Russia"] or ["Iran"]. If the article is not clearly about any specific country, output []. Use at most 5 countries; prefer the 1–3 most relevant."""
 
@@ -41,8 +41,7 @@ def _call_llm(title: str, summary: str) -> list[str]:
     user_content = USER_PROMPT_TEMPLATE.format(
         title=(title or "")[:500],
         summary=(summary or "")[:800],
-    )
-    model = LOCATION_MODEL or "gpt-4o-mini"
+            model = CLASSIFIER_MODEL
     try:
         resp = client.chat.completions.create(
             model=model,
