@@ -1,5 +1,5 @@
 // Globe vs 2D: use WebGL Earth 2 when available for proportional country sizes; otherwise Leaflet.
-window.USE_GLOBE = typeof window.USE_GLOBE !== "undefined" ? window.USE_GLOBE : true;
+window.USE_GLOBE = false;
 const USE_GLOBE = window.USE_GLOBE && typeof WE !== "undefined";
 const MapLib = USE_GLOBE ? WE : L;
 
