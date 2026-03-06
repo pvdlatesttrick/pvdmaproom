@@ -7,11 +7,19 @@ function createMap(containerId, options) {
   const opts = options || {};
   if (USE_GLOBE) {
     try {
-      return new WE.map(containerId, {
+      const globe = new WE.map(containerId, {
         zoom: opts.zoom ?? 2,
         center: opts.center || [20, 0],
         ...opts
       });
+      WE.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        subdomains: ['a', 'b', 'c'],
+        tileSize: 256,
+        minZoom: 0,
+        maxZoom: 18
+      }).addTo(globe);
+      return globe;
     } catch (e) {
       console.warn("WebGL Earth init failed, using Leaflet:", e);
       return L.map(containerId, { zoomControl: false, scrollWheelZoom: true, doubleClickZoom: true, touchZoom: true, boxZoom: true, keyboard: true, minZoom: 2, maxZoom: 19, ...opts }).setView([20, 0], 2);
