@@ -25,16 +25,23 @@ if OPENAI_API_KEY:
     _ACTIVE_KEY = OPENAI_API_KEY
     _ACTIVE_BASE_URL = OPENAI_BASE_URL or None
     _DEFAULT_MODEL = "gpt-4o-mini"
+    _DEFAULT_CLASSIFIER_MODEL = "gpt-4o-mini"
 elif GROQ_API_KEY:
     _ACTIVE_KEY = GROQ_API_KEY
     _ACTIVE_BASE_URL = "https://api.groq.com/openai/v1"
     _DEFAULT_MODEL = "llama-3.3-70b-versatile"
+    # Use the faster/lighter model for classification only — 500K TPD vs 100K TPD.
+    # This prevents the classifier from exhausting the daily token budget.
+    _DEFAULT_CLASSIFIER_MODEL = "llama-3.1-8b-instant"
 else:
     _ACTIVE_KEY = ""
     _ACTIVE_BASE_URL = None
     _DEFAULT_MODEL = "gpt-4o-mini"
+    _DEFAULT_CLASSIFIER_MODEL = "gpt-4o-mini"
 
 SUMMARY_MODEL = os.getenv("SUMMARY_MODEL", os.getenv("LOCATION_MODEL", _DEFAULT_MODEL)).strip()
+# Classifier uses a separate lighter model to avoid burning the daily TPD budget on one-word labels.
+CLASSIFIER_MODEL = os.getenv("CLASSIFIER_MODEL", _DEFAULT_CLASSIFIER_MODEL).strip()
 
 COUNTRY_SYSTEM = """You are a concise analyst. Given a country name and optional basic facts (capital, population, etc.), write a short summary (2-4 sentences) that gives broader context: current relevance in the news, key geopolitical or economic themes, and why the country matters right now. Use neutral, factual language. Base your summary on your own knowledge and the facts provided; do not reproduce or paraphrase Wikipedia. Output only the summary text, no headings or bullet points."""
 
@@ -187,11 +194,13 @@ VALID_TOPIC_LABELS = frozenset(TOPIC_LABELS)
 
 def classify_topic(client: Any, title: str, summary: str) -> str:
     """Assign ONE primary topic label via the classifier LLM.
+    Uses llama-3.1-8b-instant (500K TPD) instead of llama-3.3-70b-versatile (100K TPD)
+    to avoid exhausting the daily token budget on one-word classifications.
     Defaults to 'geopolitics' if response is invalid or if rate-limited."""
     try:
         text = f"Title: {title}\n\nSummary: {summary}"
         resp = client.chat.completions.create(
-            model=SUMMARY_MODEL,
+            model=CLASSIFIER_MODEL,
             messages=[
                 {"role": "system", "content": CLASSIFIER_SYSTEM},
                 {"role": "user", "content": text},
