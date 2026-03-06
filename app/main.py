@@ -46,11 +46,16 @@ def _log_optional_features() -> None:
 
 def create_app() -> Flask:
     """Create and configure the Flask app."""
-    app = Flask(__name__)
+    log = logging.getLogger(__name__)
+    try:
+        app = Flask(__name__)
 
-    # Ensure DB tables exist before first request.
-    init_db()
-    _log_optional_features()
+        # Ensure DB tables exist before first request.
+        init_db()
+        _log_optional_features()
+    except Exception as e:
+        log.exception("Startup failed: %s", e)
+        raise
 
     # Ingest state for async ingest and polling (single-threaded; one ingest at a time).
     _ingest_lock = threading.Lock()

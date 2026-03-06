@@ -32,8 +32,9 @@ POPULAR_SOURCES = frozenset({
 })
 
 def get_db_path() -> str:
-    """Return DB path, defaulting to /data/app.db for Docker volume usage."""
-    return os.getenv("DB_PATH", "/data/app.db")
+    """Return DB path. Default is data/app.db (relative to cwd) so Render free tier works without a disk.
+    For Docker/Render with a persistent volume, set DB_PATH e.g. to /data/app.db."""
+    return os.getenv("DB_PATH", os.path.join(os.getcwd(), "data", "app.db"))
 
 
 def _utc_now_iso() -> str:
@@ -45,7 +46,16 @@ def get_connection() -> sqlite3.Connection:
     db_path = get_db_path()
     parent = os.path.dirname(db_path)
     if parent:
-        os.makedirs(parent, exist_ok=True)
+        try:
+            os.makedirs(parent, exist_ok=True)
+        except OSError:
+            # e.g. /data not writable on Render free tier; fallback to cwd
+            fallback = os.path.join(os.getcwd(), "data", "app.db")
+            if fallback != db_path:
+                import logging
+                logging.getLogger(__name__).warning("Could not create DB dir %s, using %s", parent, fallback)
+                db_path = fallback
+                os.makedirs(os.path.dirname(db_path), exist_ok=True)
 
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row

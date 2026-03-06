@@ -179,7 +179,7 @@ If the map loads but shows no markers:
    In the Render dashboard → your service → **Logs**, search for `Ingest finished` or `Background ingest`. You should see e.g. `Ingest finished: 150 mapped stories`. If you see `Background ingest failed:` and an exception, that explains missing pins (e.g. RSS/network errors, DB path, or relevance/geocoding logic).
 
 4. **DB path**  
-   Default is `/data/app.db`. On Render the disk is ephemeral; the app creates `/data` and the DB at startup. If you set `DB_PATH` in Environment, ensure the parent directory exists or the app can create it.
+   Default is `data/app.db` (relative to the app’s working directory) so the app starts on Render’s free tier without a disk. If the service keeps restarting, **remove** `DB_PATH` from Render Environment so the app uses this default. For persistent storage, add a Render Disk and set `DB_PATH` to a path on that disk (e.g. `/data/app.db`).
 
 ## Local run (without Docker)
 
