@@ -1302,7 +1302,7 @@ async function openCountryPanel(countryName, mapKey) {
 }
 
 function loadCountryBordersForContext(context) {
-  if (!worldCountryGeoJson) return;
+  if (!worldCountryGeoJson || !context.map) return;
   const GeoJSON = (MapLib.geoJSON || L.geoJSON);
   context.countryLayer = GeoJSON(worldCountryGeoJson, {
     style: countryStyle,
@@ -1366,13 +1366,15 @@ function loadBordersForYear(year) {
       }
       currentBorderYear = year;
       Object.values(mapContexts).forEach((context) => {
-        if (context.countryLayer && context.map.hasLayer(context.countryLayer)) {
-          context.map.removeLayer(context.countryLayer);
-          context.countryLayer = null;
-        }
-        if (context.countryLabelsLayer && context.map.hasLayer(context.countryLabelsLayer)) {
-          context.map.removeLayer(context.countryLabelsLayer);
-          context.countryLabelsLayer = null;
+        if (context.map) {
+          if (context.countryLayer && context.map.hasLayer(context.countryLayer)) {
+            context.map.removeLayer(context.countryLayer);
+            context.countryLayer = null;
+          }
+          if (context.countryLabelsLayer && context.map.hasLayer(context.countryLabelsLayer)) {
+            context.map.removeLayer(context.countryLabelsLayer);
+            context.countryLabelsLayer = null;
+          }
         }
         context.countryLayerIndex = {};
       });
@@ -1507,11 +1509,12 @@ function filterPinsForCountry(countryName) {   Object.keys(layersByMapKey).forEa
   const overlay = document.getElementById("map-loading-overlay");
   if (overlay) overlay.classList.remove("hidden");
   try {
-    let url = "/api/stories";
+    const params = new URLSearchParams();
+    params.set("limit", "150");
     if (selectedYear !== null && selectedYear !== undefined) {
-      url += "?year=" + encodeURIComponent(selectedYear);
+      params.set("year", String(selectedYear));
     }
-    const response = await fetch(url);
+    const response = await fetch("/api/stories?" + params.toString());
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const stories = await response.json();
     const visible = stories.filter((s) => {
@@ -1548,135 +1551,159 @@ function filterPinsForCountry(countryName) {   Object.keys(layersByMapKey).forEa
     if (overlay) overlay.classList.add("hidden");
   }
 }
-function initMapContexts() {
-  Object.keys(MAP_DEFS).forEach((mapKey) => {
-    const mapId = MAP_DEFS[mapKey].mapId;
-    const m = createMap(mapId);
-    if (!USE_GLOBE) m.setView([20, 0], 2);
-    L.control.zoom({ position: "topright" }).addTo(m);
+function createOneMapContext(mapKey, existingMarkerLayer) {
+  const mapId = MAP_DEFS[mapKey].mapId;
+  const m = createMap(mapId);
+  if (!USE_GLOBE) m.setView([20, 0], 2);
+  L.control.zoom({ position: "topright" }).addTo(m);
 
-    const osm = MapLib.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>",
-      maxZoom: 19
-    });
-    const satellite = MapLib.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
-      attribution: "&copy; Esri",
-      maxZoom: 18
-    });
-    const terrain = MapLib.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; <a href=\"https://opentopomap.org\">OpenTopoMap</a>",
-      maxZoom: 17
-    });
+  const osm = MapLib.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>",
+    maxZoom: 19
+  });
+  const satellite = MapLib.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+    attribution: "&copy; Esri",
+    maxZoom: 18
+  });
+  const terrain = MapLib.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; <a href=\"https://opentopomap.org\">OpenTopoMap</a>",
+    maxZoom: 17
+  });
 
-    osm.addTo(m);
-    const baseLayers = {
-      "Map": osm,
-      "Satellite": satellite,
-      "Terrain": terrain
-    };
-    const overlays = {};
-    let iswLinesLayer = null;
-    if (mapKey === "conflicts") {
-      iswLinesLayer = (MapLib.layerGroup || L.layerGroup)();
-      const iswLineStyle = { color: "#c44", weight: 4, dashArray: "10,8", opacity: 0.95 };
-      function addIswGeoJson(geojson) {
-        if (!geojson || !geojson.features || !iswLinesLayer) return;
-        const GeoJSON = MapLib.geoJSON || L.geoJSON;
-        GeoJSON(geojson, {
-          style: iswLineStyle,
-          onEachFeature: function (feature, layer) {
-            if (feature.properties && feature.properties.name && layer.bindTooltip) {
-              layer.bindTooltip(feature.properties.name, { permanent: false, direction: "top" });
-            }
+  osm.addTo(m);
+  const baseLayers = { "Map": osm, "Satellite": satellite, "Terrain": terrain };
+  const overlays = {};
+  let iswLinesLayer = null;
+  if (mapKey === "conflicts") {
+    iswLinesLayer = (MapLib.layerGroup || L.layerGroup)();
+    const iswLineStyle = { color: "#c44", weight: 4, dashArray: "10,8", opacity: 0.95 };
+    function addIswGeoJson(geojson) {
+      if (!geojson || !geojson.features || !iswLinesLayer) return;
+      const GeoJSON = MapLib.geoJSON || L.geoJSON;
+      GeoJSON(geojson, {
+        style: iswLineStyle,
+        onEachFeature: function (feature, layer) {
+          if (feature.properties && feature.properties.name && layer.bindTooltip) {
+            layer.bindTooltip(feature.properties.name, { permanent: false, direction: "top" });
           }
-        }).addTo(iswLinesLayer);
-      }
-      fetch("/api/isw-frontlines").then((r) => r.ok ? r.json() : null).then(addIswGeoJson).catch(() => {});
-      iswLinesLayer.addTo(m);
-      overlays["ISW / Front lines"] = iswLinesLayer;
+        }
+      }).addTo(iswLinesLayer);
     }
-    L.control.layers(baseLayers, Object.keys(overlays).length ? overlays : null, { position: "topright" }).addTo(m);
-    if (!USE_GLOBE) L.control.scale({ imperial: true }).addTo(m);
+    fetch("/api/isw-frontlines").then((r) => r.ok ? r.json() : null).then(addIswGeoJson).catch(() => {});
+    iswLinesLayer.addTo(m);
+    overlays["ISW / Front lines"] = iswLinesLayer;
+  }
+  L.control.layers(baseLayers, Object.keys(overlays).length ? overlays : null, { position: "topright" }).addTo(m);
+  if (!USE_GLOBE) L.control.scale({ imperial: true }).addTo(m);
 
-    L.Control.Fullscreen = L.Control.extend({
-      onAdd: function () {
-        const div = L.DomUtil.create("div", "leaflet-control leaflet-control-fullscreen");
-        div.innerHTML = "\u29BF";
-        div.title = "Fullscreen";
-        L.DomEvent.disableClickPropagation(div);
-        L.DomEvent.on(div, "click", this._toggle, this);
-        document.addEventListener("fullscreenchange", () => {
-          div.innerHTML = document.fullscreenElement ? "\u2715" : "\u29BF";
-          div.title = document.fullscreenElement ? "Exit fullscreen" : "Fullscreen";
-        });
-        return div;
-      },
-      _toggle: function () {
-        const pane = document.querySelector(".map-pane");
-        if (!pane) return;
-        if (!document.fullscreenElement) {
-          pane.requestFullscreen?.();
-        } else {
-          document.exitFullscreen?.();
-        }
-      }
-    });
-    L.control.fullscreen = function (opts) { return new L.Control.Fullscreen(opts); };
-    L.control.fullscreen({ position: "bottomright" }).addTo(m);
+  L.Control.Fullscreen = L.Control.extend({
+    onAdd: function () {
+      const div = L.DomUtil.create("div", "leaflet-control leaflet-control-fullscreen");
+      div.innerHTML = "\u29BF";
+      div.title = "Fullscreen";
+      L.DomEvent.disableClickPropagation(div);
+      L.DomEvent.on(div, "click", this._toggle, this);
+      document.addEventListener("fullscreenchange", () => {
+        div.innerHTML = document.fullscreenElement ? "\u2715" : "\u29BF";
+        div.title = document.fullscreenElement ? "Exit fullscreen" : "Fullscreen";
+      });
+      return div;
+    },
+    _toggle: function () {
+      const pane = document.querySelector(".map-pane");
+      if (!pane) return;
+      if (!document.fullscreenElement) pane.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    }
+  });
+  L.control.fullscreen = function (opts) { return new L.Control.Fullscreen(opts); };
+  L.control.fullscreen({ position: "bottomright" }).addTo(m);
 
-    const userLocationLayer = L.layerGroup().addTo(m);
-    L.Control.Locate = L.Control.extend({
-      onAdd: function (map) {
-        const div = L.DomUtil.create("div", "leaflet-control leaflet-control-locate");
-        div.innerHTML = "\u2316";
-        div.title = "My location";
-        L.DomEvent.disableClickPropagation(div);
-        L.DomEvent.on(div, "click", () => this._locate(map, div), this);
-        return div;
-      },
-      _locate: function (map, div) {
-        if (!navigator.geolocation) {
-          alert("Geolocation is not supported by your browser.");
-          return;
-        }
-        const layer = map._userLocationLayer;
-        div.style.opacity = "0.6";
-        navigator.geolocation.getCurrentPosition(
-          function (pos) {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            map.flyTo([lat, lng], Math.max(10, map.getZoom()));
-            if (layer) {
-              layer.clearLayers();
-              const circle = L.circleMarker([lat, lng], { radius: 8, color: "#1976d2", fillColor: "#42a5f5", fillOpacity: 0.8, weight: 2 });
-              layer.addLayer(circle);
-            }
-            div.style.opacity = "1";
-          },
-          function () {
-            alert("Unable to get your location.");
-            div.style.opacity = "1";
-          },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-        );
-      }
-    });
-    m._userLocationLayer = userLocationLayer;
-    L.control.locate = function (opts) { return new L.Control.Locate(opts); };
-    L.control.locate({ position: "bottomright" }).addTo(m);
+  const userLocationLayer = L.layerGroup().addTo(m);
+  L.Control.Locate = L.Control.extend({
+    onAdd: function (map) {
+      const div = L.DomUtil.create("div", "leaflet-control leaflet-control-locate");
+      div.innerHTML = "\u2316";
+      div.title = "My location";
+      L.DomEvent.disableClickPropagation(div);
+      L.DomEvent.on(div, "click", () => this._locate(map, div), this);
+      return div;
+    },
+    _locate: function (map, div) {
+      if (!navigator.geolocation) { alert("Geolocation is not supported by your browser."); return; }
+      const layer = map._userLocationLayer;
+      div.style.opacity = "0.6";
+      navigator.geolocation.getCurrentPosition(
+        function (pos) {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          map.flyTo([lat, lng], Math.max(10, map.getZoom()));
+          if (layer) {
+            layer.clearLayers();
+            const circle = L.circleMarker([lat, lng], { radius: 8, color: "#1976d2", fillColor: "#42a5f5", fillOpacity: 0.8, weight: 2 });
+            layer.addLayer(circle);
+          }
+          div.style.opacity = "1";
+        },
+        function () { alert("Unable to get your location."); div.style.opacity = "1"; },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      );
+    }
+  });
+  m._userLocationLayer = userLocationLayer;
+  L.control.locate = function (opts) { return new L.Control.Locate(opts); };
+  L.control.locate({ position: "bottomright" }).addTo(m);
 
-    const markerLayer = (USE_GLOBE || typeof L.markerClusterGroup !== "function")
+  let markerLayer;
+  if (existingMarkerLayer) {
+    existingMarkerLayer.addTo(m);
+    markerLayer = existingMarkerLayer;
+  } else {
+    markerLayer = (USE_GLOBE || typeof L.markerClusterGroup !== "function")
       ? (MapLib.layerGroup ? MapLib.layerGroup() : L.layerGroup)().addTo(m)
       : L.markerClusterGroup({ maxClusterRadius: 50, spiderfyOnMaxZoom: true }).addTo(m);
-    mapContexts[mapKey] = {
-      map: m,
-      markerLayer: markerLayer,
-      countryLayer: null,
-      countryLayerIndex: {},
-      selectedCountryLayer: null,
-      mapKey: mapKey,
-      iswLinesLayer: iswLinesLayer || undefined
-    };
+  }
+  return {
+    map: m,
+    markerLayer: markerLayer,
+    countryLayer: null,
+    countryLayerIndex: {},
+    selectedCountryLayer: null,
+    mapKey: mapKey,
+    iswLinesLayer: iswLinesLayer || undefined
+  };
+}
+
+function ensureMapContext(mapKey) {
+  const ctx = mapContexts[mapKey];
+  if (!ctx) return;
+  if (ctx.map) return;
+  const full = createOneMapContext(mapKey, ctx.markerLayer);
+  mapContexts[mapKey] = full;
+  layersByMapKey[mapKey] = full.markerLayer;
+  if (worldCountryGeoJson) loadCountryBordersForContext(full);
+  if (cachedAdmin1Data) loadAdmin1ForContext(full, cachedAdmin1Data);
+}
+
+function initMapContexts() {
+  const keys = Object.keys(MAP_DEFS);
+  keys.forEach((mapKey) => {
+    const markerLayer = (USE_GLOBE || typeof L.markerClusterGroup !== "function")
+      ? (MapLib.layerGroup ? MapLib.layerGroup() : L.layerGroup)()
+      : L.markerClusterGroup({ maxClusterRadius: 50, spiderfyOnMaxZoom: true });
+    if (mapKey === activeMapKey) {
+      mapContexts[mapKey] = createOneMapContext(mapKey, null);
+    } else {
+      mapContexts[mapKey] = {
+        map: null,
+        markerLayer: markerLayer,
+        countryLayer: null,
+        countryLayerIndex: {},
+        selectedCountryLayer: null,
+        mapKey: mapKey,
+        iswLinesLayer: undefined
+      };
+    }
   });
   layersByMapKey = {
     economics: mapContexts.economics.markerLayer,
@@ -1687,7 +1714,7 @@ function initMapContexts() {
 }
 
 async function loadCountryGeoJsonOnce() {
-  const resp = await fetch("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json");
+  const resp = await fetch("/static/geo/countries.geo.json");
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   worldCountryGeoJson = await resp.json();
   Object.values(mapContexts).forEach((context) => loadCountryBordersForContext(context));
@@ -1710,18 +1737,23 @@ function loadAdmin1ForContext(context, data) {
   context.regionLayer = regionLayer;
 }
 
+let cachedAdmin1Data = null;
 async function loadAdmin1GeoJsonOnce() {
   try {
     const res = await fetch("/static/geo/admin1.geojson");
     if (!res.ok) return;
     const data = await res.json();
-    Object.values(mapContexts).forEach((context) => loadAdmin1ForContext(context, data));
+    cachedAdmin1Data = data;
+    Object.values(mapContexts).forEach((context) => {
+      if (context.map) loadAdmin1ForContext(context, data);
+    });
   } catch (err) {
     console.error("Failed to load admin1 geojson", err);
   }
 }
 
 function activateMapTab(mapKey) {
+  ensureMapContext(mapKey);
   setActiveMapKey(mapKey);
   document.querySelectorAll(".map-tab").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.mapKey === mapKey);
@@ -1736,7 +1768,8 @@ function activateMapTab(mapKey) {
   if (dd) dd.classList.remove("open");
   const trigger = document.getElementById("maps-dropdown-trigger");
   if (trigger) trigger.setAttribute("aria-expanded", "false");
-  setTimeout(() => mapContexts[mapKey].map.invalidateSize(), 80);
+  const ctx = mapContexts[mapKey];
+  if (ctx && ctx.map) setTimeout(() => ctx.map.invalidateSize(), 80);
 }
 
 function initMapsDropdown() {
@@ -2002,4 +2035,4 @@ document.addEventListener("click", async (e) => {
 });
 
 refreshStories();
-setInterval(refreshStories, 30000);
+setInterval(refreshStories, 300000);

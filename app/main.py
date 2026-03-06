@@ -65,15 +65,28 @@ def create_app() -> Flask:
 
     threading.Thread(target=_run_ingest_and_log, daemon=True).start()
 
-    # Scheduled re-ingest every 45 minutes so pins stay fresh when the service stays up.
+    # Scheduled re-ingest every 45 minutes and keep-alive ping so Render free tier doesn't spin down.
     try:
         from apscheduler.schedulers.background import BackgroundScheduler
+        import urllib.request
         scheduler = BackgroundScheduler()
         scheduler.add_job(lambda: threading.Thread(target=_run_ingest_and_log, daemon=True).start(), "interval", minutes=45, id="ingest")
+        port = os.environ.get("PORT", "10000")
+        def _ping():
+            try:
+                urllib.request.urlopen(f"http://127.0.0.1:{port}/ping", timeout=5)
+            except Exception as e:
+                logging.getLogger(__name__).debug("Keep-alive ping failed: %s", e)
+        scheduler.add_job(_ping, "interval", minutes=14, id="keepalive")
         scheduler.start()
-        logging.getLogger(__name__).info("Scheduler started: re-ingest every 45 minutes.")
+        logging.getLogger(__name__).info("Scheduler started: re-ingest every 45 min, keep-alive every 14 min.")
     except ImportError:
         logging.getLogger(__name__).warning("APScheduler not installed; no scheduled re-ingest.")
+
+    @app.get("/ping")
+    def ping():
+        """Lightweight route for keep-alive pings so Render free tier does not spin down."""
+        return jsonify({"ok": True})
 
     @app.get("/")
     def index():
@@ -81,6 +94,13 @@ def create_app() -> Flask:
 
     @app.get("/api/stories")
     def api_stories():
+        limit_param = request.args.get("limit", "").strip()
+        limit = 150
+        if limit_param:
+            try:
+                limit = max(1, min(500, int(limit_param)))
+            except ValueError:
+                pass
         year_param = request.args.get("year", "").strip()
         year: int | None = None
         if year_param:
@@ -88,7 +108,7 @@ def create_app() -> Flask:
                 year = int(year_param)
             except ValueError:
                 pass
-        stories = get_stories(limit=500, year=year)
+        stories = get_stories(limit=limit, year=year)
         if year is not None:
             from app.historical_events import fetch_historical_events
             try:
