@@ -38,6 +38,8 @@ SUMMARY_MODEL = os.getenv("SUMMARY_MODEL", os.getenv("LOCATION_MODEL", _DEFAULT_
 
 COUNTRY_SYSTEM = """You are a concise analyst. Given a country name and optional basic facts (capital, population, etc.), write a short summary (2-4 sentences) that gives broader context: current relevance in the news, key geopolitical or economic themes, and why the country matters right now. Use neutral, factual language. Base your summary on your own knowledge and the facts provided; do not reproduce or paraphrase Wikipedia. Output only the summary text, no headings or bullet points."""
 
+HISTORICAL_COUNTRY_SYSTEM = """You are summarizing the state of {country} in the year {year_label}. Focus on the key political situation, major conflicts or wars, economic conditions, and notable events of that specific year. Be concise — 3-4 sentences. Use neutral, factual language. Output only the summary text, no headings or bullet points."""
+
 # Map tab -> focus instruction for country summary (from app.topics TOPIC_DEFINITIONS).
 COUNTRY_MAP_FOCUS = {
     k: f"Focus this summary strictly on: {v} Apply this to the country only; do not discuss other topics unless directly relevant."
@@ -122,11 +124,17 @@ def summarize_country(
             "Be specific to that year; do not describe the present day."
         )
     user_content = f"Country: {country_name.strip()}{facts_text}{focus_instruction}{year_instruction}\n\nWrite the summary:"
+    system_prompt = COUNTRY_SYSTEM
+    if year is not None and year < 1930:
+        system_prompt = HISTORICAL_COUNTRY_SYSTEM.format(
+            country=country_name.strip(),
+            year_label=_year_label(year).strip() or str(year),
+        )
     try:
         resp = client.chat.completions.create(
             model=SUMMARY_MODEL,
             messages=[
-                {"role": "system", "content": COUNTRY_SYSTEM},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content},
             ],
             max_tokens=400,

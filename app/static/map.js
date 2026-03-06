@@ -287,6 +287,10 @@ const mapContexts = {};
 /** Topic -> marker layer; populated after initMapContexts. Used by addStoryToMap. */
 let layersByMapKey = {}; let allVisibleStories = []; let allCountryMajorEvents = {};
 
+function isHistoricalYear(year) {
+  return year !== null && year !== undefined && year < 1930;
+}
+
 function truncate(text, maxLen = 240) {
   if (!text) return "";
   return text.length > maxLen ? `${text.slice(0, maxLen - 1)}…` : text;
@@ -1295,6 +1299,18 @@ async function openCountryPanel(countryName, mapKey) {
       allSourcesListEl.innerHTML = renderCoverageWithLocationSections(geopoliticsStories, "No geopolitics coverage for this country yet.");
       storyListEl.innerHTML = renderCoverageWithLocationSections(geopoliticsStories, "No recent mapped stories for this country yet.");
     }
+    if (isHistoricalYear(selectedYear)) {
+      if (recentUpdatesHeading) recentUpdatesHeading.style.display = "none";
+      storyListEl.innerHTML = "";
+      allSourcesListEl.innerHTML = "";
+      if (allSourcesHeading) allSourcesHeading.style.display = "none";
+      if (factsWrap) factsWrap.style.display = "block";
+      if (aiSummarySection) aiSummarySection.style.display = "block";
+      setTimeout(() => {
+        const btn = document.getElementById("country-ai-summary-btn");
+        if (btn) btn.click();
+      }, 150);
+    }
   } catch (error) {
     factsEl.innerHTML = "Failed to load country details.";
     console.error("Country panel load failed:", error);
@@ -1517,13 +1533,28 @@ function filterPinsForCountry(countryName) {   Object.keys(layersByMapKey).forEa
     const response = await fetch("/api/stories?" + params.toString());
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const stories = await response.json();
-    const visible = stories.filter((s) => {
+    let visible = stories.filter((s) => {
       if (s.location_type === "country") return false;
       if (typeof s.lat !== "number" || typeof s.lon !== "number") return false;
       if (s.source === "economist_podcast") return false;
       if (s.country === "World" && (s.source || "").toLowerCase() !== "wikipedia_historical") return false;
       return true;
     });
+    if (isHistoricalYear(selectedYear)) {
+      const seen = new Set();
+      const ranked = visible
+        .filter((s) => s.country && s.country !== "World" && typeof s.lat === "number" && typeof s.lon === "number")
+        .sort((a, b) => (b.summary || "").length - (a.summary || "").length);
+      const top5 = [];
+      for (const s of ranked) {
+        if (!seen.has(s.country)) {
+          seen.add(s.country);
+          top5.push(s);
+        }
+        if (top5.length >= 5) break;
+      }
+      visible = top5;
+    }
     const countryMajorEvents = buildCountryMajorEvents(visible);
     allVisibleStories = visible;   allCountryMajorEvents = countryMajorEvents;   const byTopic = { economics: [], geopolitics: [], conflicts: [], sports: [] };
     visible.forEach((s) => {
@@ -1804,14 +1835,20 @@ function initYearSelector() {
     if (raw === "") {
       selectedYear = null;
       if (bcSpan) bcSpan.textContent = "";
-      refreshStories();
+      refreshStories().then(() => {
+        document.getElementById("country-side-panel").classList.remove("open");
+        filterPinsForCountry(null);
+      });
       return;
     }
     const n = parseInt(input.value, 10);
     if (isNaN(n) || n < -1000 || n > 2030) return;
     selectedYear = n;
     if (bcSpan) bcSpan.textContent = n < 1 ? "BC" : "";
-    refreshStories();
+    refreshStories().then(() => {
+      document.getElementById("country-side-panel").classList.remove("open");
+      filterPinsForCountry(null);
+    });
   }
   input.addEventListener("change", applyYear);
   input.addEventListener("keydown", (e) => {
