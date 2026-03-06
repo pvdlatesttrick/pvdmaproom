@@ -10,7 +10,7 @@ import logging
 import re
 from typing import Any
 
-from app.ai_summary import SUMMARY_MODEL
+from app.ai_summary import CLASSIFIER_MODEL
 
 log = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ def classify_content_type(story: dict[str, Any], model_client: Any) -> str:
             f"Summary: {story.get('summary', '')}"
         )
         resp = model_client.chat.completions.create(
-            model=SUMMARY_MODEL,
+            model=CLASSIFIER_MODEL,
             messages=[
                 {"role": "system", "content": CONTENT_TYPE_SYSTEM},
                 {"role": "user", "content": user_content[:8000]},
