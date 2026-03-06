@@ -32,6 +32,43 @@ Beginner-friendly project that plots news stories on a live world map.
 - `app/static/map.css` - Map and UI styles (extracted from index)
 - `app/static/map.js` - Map logic, sources, and controls (extracted from index)
 
+## Run locally (without Docker)
+
+From the project root (where `app/` and `requirements.txt` are):
+
+```bash
+# 1. Clone if you haven't already
+git clone https://github.com/pvdlatesttrick/pvdmaproom.git
+cd pvdmaproom
+
+# 2. Create and activate a virtual environment
+python3 -m venv venv
+source venv/bin/activate        # Mac/Linux
+# venv\Scripts\activate        # Windows
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Set environment variables (optional but recommended)
+export FLASK_APP=app.main:create_app()
+export FLASK_ENV=development    # enables hot reload
+export OPENAI_API_KEY=your_key_here   # or GROQ_API_KEY for location inference / AI
+# add any others your app uses (GROQ_API_KEY, NYT_API_KEY, etc.)
+
+# 5. Run the app
+flask run
+```
+
+Then open **http://127.0.0.1:5000** (Flask default). To use port 8000: `flask run --port 8000`.
+
+Ingest runs in a background thread at startup. To trigger it manually: **POST** `/api/ingest` or run `python -m app.ingest`.
+
+### Key things to watch out for
+
+- **gunicorn** is in `requirements.txt` for **production** (e.g. Render). Locally, use **`flask run`** instead so the app hot-reloads on file changes.
+- **`data/app.db`** is in `.gitignore` — your local SQLite DB is not in the repo. On a fresh clone the file won’t exist; the app creates it and runs ingest on first start, so the map may be empty until the first ingest finishes (or trigger **POST** `/api/ingest` and wait a minute).
+- **API keys** — set **`OPENAI_API_KEY`** and/or **`GROQ_API_KEY`** (and any others like `NYT_API_KEY`) as environment variables. You can use a **`.env`** file in the project root (also gitignored); the app loads it via `python-dotenv` when present, so you don’t have to `export` every time.
+
 ## Run with Docker (recommended)
 
 1. Build and start web app:

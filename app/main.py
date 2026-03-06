@@ -8,6 +8,13 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Load .env from project root so OPENAI_API_KEY, GROQ_API_KEY, etc. work without exporting
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+except ImportError:
+    pass
+
 from flask import Flask, jsonify, render_template, request
 
 # In-memory cache for /api/stories to avoid repeated DB hits (60s TTL).
