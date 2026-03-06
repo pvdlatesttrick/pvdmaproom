@@ -52,17 +52,14 @@ TITLE_SYSTEM = """You write short headlines for news articles and social posts. 
 
 CLASSIFIER_SYSTEM = """
 You are a classifier that assigns ONE primary topic label to a news story.
-
 Available labels and definitions:
 - economics: {econ}
 - geopolitics: {geo}
 - conflicts: {conf}
 - sports: {sports}
-
 Rules:
 - Output ONLY one word: economics, geopolitics, conflicts, or sports.
-- If a story fits multiple labels, use this priority order:
-  conflicts > geopolitics > economics > sports.
+- If a story fits multiple labels, use this priority order: conflicts > geopolitics > economics > sports.
 """.format(
     econ=TOPIC_DEFINITIONS["economics"],
     geo=TOPIC_DEFINITIONS["geopolitics"],
@@ -189,19 +186,24 @@ VALID_TOPIC_LABELS = frozenset(TOPIC_LABELS)
 
 
 def classify_topic(client: Any, title: str, summary: str) -> str:
-    """Assign ONE primary topic label via the classifier LLM. Defaults to 'geopolitics' if response is invalid."""
-    text = f"Title: {title}\n\nSummary: {summary}"
-    resp = client.chat.completions.create(
-        model=SUMMARY_MODEL,
-        messages=[
-            {"role": "system", "content": CLASSIFIER_SYSTEM},
-            {"role": "user", "content": text},
-        ],
-        max_tokens=2,
-        temperature=0,
-    )
-    label = (resp.choices[0].message.content or "").strip().lower()
-    return label if label in VALID_TOPIC_LABELS else "geopolitics"
+    """Assign ONE primary topic label via the classifier LLM.
+    Defaults to 'geopolitics' if response is invalid or if rate-limited."""
+    try:
+        text = f"Title: {title}\n\nSummary: {summary}"
+        resp = client.chat.completions.create(
+            model=SUMMARY_MODEL,
+            messages=[
+                {"role": "system", "content": CLASSIFIER_SYSTEM},
+                {"role": "user", "content": text},
+            ],
+            max_tokens=2,
+            temperature=0,
+        )
+        label = (resp.choices[0].message.content or "").strip().lower()
+        return label if label in VALID_TOPIC_LABELS else "geopolitics"
+    except Exception as e:
+        log.warning("classify_topic API call failed (rate limit or error): %s", e)
+        return "geopolitics"
 
 
 def classify_story(story: dict[str, Any] | None) -> str | None:
