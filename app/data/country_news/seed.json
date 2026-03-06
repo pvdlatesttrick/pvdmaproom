@@ -1,0 +1,2006 @@
+{
+  "countries": {
+    "US": [
+      {
+        "title": "United States: politics and economy",
+        "summary": "Overview of U.S. politics, economy, and foreign policy. Add real headlines by editing this file or running scripts/seed_country_news.py.",
+        "source_url": "https://en.wikipedia.org/wiki/United_States",
+        "date": "2025-02-27",
+        "source": "Seed",
+        "lat": 38.9,
+        "lon": -77.0,
+        "topic": "geopolitics"
+      }
+    ],
+    "GB": [
+      {
+        "title": "United Kingdom: news and context",
+        "summary": "Key facts and recent context for the UK. Add real headlines in data/country_news/seed.json.",
+        "source_url": "https://en.wikipedia.org/wiki/United_Kingdom",
+        "date": "2025-02-27",
+        "source": "Seed",
+        "topic": "geopolitics"
+      }
+    ],
+    "UA": [
+      {
+        "title": "Ukraine: conflict and resilience",
+        "summary": "Ongoing conflict and international support. Add real headlines from your sources here.",
+        "source_url": "https://en.wikipedia.org/wiki/Ukraine",
+        "date": "2025-02-27",
+        "source": "Seed",
+        "lat": 50.45,
+        "lon": 30.52,
+        "topic": "conflicts"
+      }
+    ],
+    "MM": [
+      {
+        "title": "Myanmar: civil war and humanitarian crisis",
+        "summary": "Civil war and displacement. Add real headlines in seed.json for this country.",
+        "source_url": "https://en.wikipedia.org/wiki/Myanmar",
+        "date": "2025-02-27",
+        "source": "Seed",
+        "lat": 21.9,
+        "lon": 96.1,
+        "topic": "conflicts"
+      }
+    ],
+    "AF": [
+      {
+        "title": "Overview: AF",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/AF",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 33.9,
+        "lon": 67.7
+      }
+    ],
+    "AL": [
+      {
+        "title": "Overview: AL",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/AL",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 41.2,
+        "lon": 20.2
+      }
+    ],
+    "DZ": [
+      {
+        "title": "Overview: DZ",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/DZ",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 28.0,
+        "lon": 3.0
+      }
+    ],
+    "AR": [
+      {
+        "title": "Overview: AR",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/AR",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -38.4,
+        "lon": -63.6
+      }
+    ],
+    "AM": [
+      {
+        "title": "Overview: AM",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/AM",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 40.1,
+        "lon": 45.0
+      }
+    ],
+    "AU": [
+      {
+        "title": "Overview: AU",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/AU",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -25.3,
+        "lon": 133.8
+      }
+    ],
+    "AT": [
+      {
+        "title": "Overview: AT",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/AT",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 47.5,
+        "lon": 14.6
+      }
+    ],
+    "AZ": [
+      {
+        "title": "Overview: AZ",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/AZ",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 40.1,
+        "lon": 47.6
+      }
+    ],
+    "BH": [
+      {
+        "title": "Overview: BH",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/BH",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 26.1,
+        "lon": 50.6
+      }
+    ],
+    "BD": [
+      {
+        "title": "Overview: BD",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/BD",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 23.7,
+        "lon": 90.4
+      }
+    ],
+    "BY": [
+      {
+        "title": "Overview: BY",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/BY",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 53.7,
+        "lon": 28.0
+      }
+    ],
+    "BE": [
+      {
+        "title": "Overview: BE",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/BE",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 50.5,
+        "lon": 4.5
+      }
+    ],
+    "BJ": [
+      {
+        "title": "Overview: BJ",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/BJ",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 9.3,
+        "lon": 2.3
+      }
+    ],
+    "BO": [
+      {
+        "title": "Overview: BO",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/BO",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -16.3,
+        "lon": -63.6
+      }
+    ],
+    "BA": [
+      {
+        "title": "Overview: BA",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/BA",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 44.0,
+        "lon": 17.8
+      }
+    ],
+    "BW": [
+      {
+        "title": "Overview: BW",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/BW",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -22.3,
+        "lon": 24.7
+      }
+    ],
+    "BR": [
+      {
+        "title": "Overview: BR",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/BR",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -14.2,
+        "lon": -51.9
+      }
+    ],
+    "BN": [
+      {
+        "title": "Overview: BN",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/BN",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 4.5,
+        "lon": 114.7
+      }
+    ],
+    "BG": [
+      {
+        "title": "Overview: BG",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/BG",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 42.7,
+        "lon": 25.5
+      }
+    ],
+    "BF": [
+      {
+        "title": "Overview: BF",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/BF",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 12.2,
+        "lon": -1.6
+      }
+    ],
+    "BI": [
+      {
+        "title": "Overview: BI",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/BI",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -3.4,
+        "lon": 29.9
+      }
+    ],
+    "KH": [
+      {
+        "title": "Overview: KH",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/KH",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 12.6,
+        "lon": 105.0
+      }
+    ],
+    "CM": [
+      {
+        "title": "Overview: CM",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/CM",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 6.6,
+        "lon": 12.4
+      }
+    ],
+    "CA": [
+      {
+        "title": "Overview: CA",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/CA",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 56.1,
+        "lon": -106.3
+      }
+    ],
+    "CV": [
+      {
+        "title": "Overview: CV",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/CV",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 15.1,
+        "lon": -23.6
+      }
+    ],
+    "CF": [
+      {
+        "title": "Overview: CF",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/CF",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 6.6,
+        "lon": 20.9
+      }
+    ],
+    "TD": [
+      {
+        "title": "Overview: TD",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/TD",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 15.5,
+        "lon": 19.1
+      }
+    ],
+    "CL": [
+      {
+        "title": "Overview: CL",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/CL",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -35.7,
+        "lon": -71.5
+      }
+    ],
+    "CN": [
+      {
+        "title": "Overview: CN",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/CN",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 35.9,
+        "lon": 104.2
+      }
+    ],
+    "CO": [
+      {
+        "title": "Overview: CO",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/CO",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 4.6,
+        "lon": -74.1
+      }
+    ],
+    "KM": [
+      {
+        "title": "Overview: KM",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/KM",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -11.6,
+        "lon": 43.3
+      }
+    ],
+    "CG": [
+      {
+        "title": "Overview: CG",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/CG",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -0.9,
+        "lon": 15.9
+      }
+    ],
+    "CD": [
+      {
+        "title": "Overview: CD",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/CD",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -4.0,
+        "lon": 21.8
+      }
+    ],
+    "CR": [
+      {
+        "title": "Overview: CR",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/CR",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 9.7,
+        "lon": -83.8
+      }
+    ],
+    "CI": [
+      {
+        "title": "Overview: CI",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/CI",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 7.5,
+        "lon": -5.5
+      }
+    ],
+    "HR": [
+      {
+        "title": "Overview: HR",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/HR",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 45.1,
+        "lon": 15.2
+      }
+    ],
+    "CU": [
+      {
+        "title": "Overview: CU",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/CU",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 21.5,
+        "lon": -77.8
+      }
+    ],
+    "CY": [
+      {
+        "title": "Overview: CY",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/CY",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 35.1,
+        "lon": 33.4
+      }
+    ],
+    "CZ": [
+      {
+        "title": "Overview: CZ",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/CZ",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 49.8,
+        "lon": 15.5
+      }
+    ],
+    "DK": [
+      {
+        "title": "Overview: DK",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/DK",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 56.3,
+        "lon": 9.5
+      }
+    ],
+    "DJ": [
+      {
+        "title": "Overview: DJ",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/DJ",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 11.8,
+        "lon": 42.6
+      }
+    ],
+    "DO": [
+      {
+        "title": "Overview: DO",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/DO",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 18.7,
+        "lon": -70.2
+      }
+    ],
+    "EC": [
+      {
+        "title": "Overview: EC",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/EC",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -1.8,
+        "lon": -78.2
+      }
+    ],
+    "EG": [
+      {
+        "title": "Overview: EG",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/EG",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 26.8,
+        "lon": 30.8
+      }
+    ],
+    "SV": [
+      {
+        "title": "Overview: SV",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/SV",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 13.8,
+        "lon": -88.9
+      }
+    ],
+    "GQ": [
+      {
+        "title": "Overview: GQ",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/GQ",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 1.6,
+        "lon": 10.5
+      }
+    ],
+    "ER": [
+      {
+        "title": "Overview: ER",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/ER",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 15.2,
+        "lon": 39.8
+      }
+    ],
+    "EE": [
+      {
+        "title": "Overview: EE",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/EE",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 58.6,
+        "lon": 25.0
+      }
+    ],
+    "ET": [
+      {
+        "title": "Overview: ET",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/ET",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 9.1,
+        "lon": 40.5
+      }
+    ],
+    "FJ": [
+      {
+        "title": "Overview: FJ",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/FJ",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -17.7,
+        "lon": 178.1
+      }
+    ],
+    "FI": [
+      {
+        "title": "Overview: FI",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/FI",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 64.0,
+        "lon": 26.0
+      }
+    ],
+    "FR": [
+      {
+        "title": "Overview: FR",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/FR",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 46.2,
+        "lon": 2.2
+      }
+    ],
+    "GA": [
+      {
+        "title": "Overview: GA",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/GA",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -0.8,
+        "lon": 11.6
+      }
+    ],
+    "GM": [
+      {
+        "title": "Overview: GM",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/GM",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 13.4,
+        "lon": -15.3
+      }
+    ],
+    "GE": [
+      {
+        "title": "Overview: GE",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/GE",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 42.3,
+        "lon": 43.4
+      }
+    ],
+    "DE": [
+      {
+        "title": "Overview: DE",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/DE",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 51.2,
+        "lon": 10.5
+      }
+    ],
+    "GH": [
+      {
+        "title": "Overview: GH",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/GH",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 7.9,
+        "lon": -1.0
+      }
+    ],
+    "GR": [
+      {
+        "title": "Overview: GR",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/GR",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 39.1,
+        "lon": 21.8
+      }
+    ],
+    "GT": [
+      {
+        "title": "Overview: GT",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/GT",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 15.8,
+        "lon": -90.2
+      }
+    ],
+    "GN": [
+      {
+        "title": "Overview: GN",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/GN",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 9.9,
+        "lon": -9.7
+      }
+    ],
+    "GW": [
+      {
+        "title": "Overview: GW",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/GW",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 12.0,
+        "lon": -15.0
+      }
+    ],
+    "GY": [
+      {
+        "title": "Overview: GY",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/GY",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 4.9,
+        "lon": -58.9
+      }
+    ],
+    "HT": [
+      {
+        "title": "Overview: HT",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/HT",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 18.9,
+        "lon": -72.3
+      }
+    ],
+    "HN": [
+      {
+        "title": "Overview: HN",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/HN",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 15.2,
+        "lon": -86.2
+      }
+    ],
+    "HU": [
+      {
+        "title": "Overview: HU",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/HU",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 47.2,
+        "lon": 19.5
+      }
+    ],
+    "IS": [
+      {
+        "title": "Overview: IS",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/IS",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 64.9,
+        "lon": -19.0
+      }
+    ],
+    "IN": [
+      {
+        "title": "Overview: IN",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/IN",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 20.6,
+        "lon": 78.9
+      }
+    ],
+    "ID": [
+      {
+        "title": "Overview: ID",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/ID",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -0.8,
+        "lon": 113.9
+      }
+    ],
+    "IR": [
+      {
+        "title": "Overview: IR",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/IR",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 32.4,
+        "lon": 53.7
+      }
+    ],
+    "IQ": [
+      {
+        "title": "Overview: IQ",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/IQ",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 33.2,
+        "lon": 43.7
+      }
+    ],
+    "IE": [
+      {
+        "title": "Overview: IE",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/IE",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 53.1,
+        "lon": -8.0
+      }
+    ],
+    "IL": [
+      {
+        "title": "Overview: IL",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/IL",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 31.0,
+        "lon": 34.9
+      }
+    ],
+    "IT": [
+      {
+        "title": "Overview: IT",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/IT",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 41.9,
+        "lon": 12.6
+      }
+    ],
+    "JM": [
+      {
+        "title": "Overview: JM",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/JM",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 18.1,
+        "lon": -77.3
+      }
+    ],
+    "JP": [
+      {
+        "title": "Overview: JP",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/JP",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 36.2,
+        "lon": 138.3
+      }
+    ],
+    "JO": [
+      {
+        "title": "Overview: JO",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/JO",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 31.2,
+        "lon": 36.5
+      }
+    ],
+    "KZ": [
+      {
+        "title": "Overview: KZ",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/KZ",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 48.0,
+        "lon": 67.3
+      }
+    ],
+    "KE": [
+      {
+        "title": "Overview: KE",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/KE",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -0.0,
+        "lon": 37.9
+      }
+    ],
+    "KW": [
+      {
+        "title": "Overview: KW",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/KW",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 29.3,
+        "lon": 47.5
+      }
+    ],
+    "KG": [
+      {
+        "title": "Overview: KG",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/KG",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 41.2,
+        "lon": 74.8
+      }
+    ],
+    "LA": [
+      {
+        "title": "Overview: LA",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/LA",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 19.9,
+        "lon": 102.1
+      }
+    ],
+    "LV": [
+      {
+        "title": "Overview: LV",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/LV",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 56.9,
+        "lon": 24.6
+      }
+    ],
+    "LB": [
+      {
+        "title": "Overview: LB",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/LB",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 33.9,
+        "lon": 35.9
+      }
+    ],
+    "LS": [
+      {
+        "title": "Overview: LS",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/LS",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -29.6,
+        "lon": 28.2
+      }
+    ],
+    "LR": [
+      {
+        "title": "Overview: LR",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/LR",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 6.4,
+        "lon": -9.4
+      }
+    ],
+    "LY": [
+      {
+        "title": "Overview: LY",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/LY",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 27.0,
+        "lon": 17.2
+      }
+    ],
+    "LT": [
+      {
+        "title": "Overview: LT",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/LT",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 55.2,
+        "lon": 23.9
+      }
+    ],
+    "LU": [
+      {
+        "title": "Overview: LU",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/LU",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 49.8,
+        "lon": 6.1
+      }
+    ],
+    "MG": [
+      {
+        "title": "Overview: MG",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/MG",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -18.8,
+        "lon": 46.9
+      }
+    ],
+    "MW": [
+      {
+        "title": "Overview: MW",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/MW",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -13.3,
+        "lon": 34.3
+      }
+    ],
+    "MY": [
+      {
+        "title": "Overview: MY",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/MY",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 4.2,
+        "lon": 101.9
+      }
+    ],
+    "MV": [
+      {
+        "title": "Overview: MV",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/MV",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 3.2,
+        "lon": 73.2
+      }
+    ],
+    "ML": [
+      {
+        "title": "Overview: ML",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/ML",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 17.6,
+        "lon": -4.0
+      }
+    ],
+    "MT": [
+      {
+        "title": "Overview: MT",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/MT",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 35.9,
+        "lon": 14.4
+      }
+    ],
+    "MR": [
+      {
+        "title": "Overview: MR",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/MR",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 20.3,
+        "lon": -10.3
+      }
+    ],
+    "MU": [
+      {
+        "title": "Overview: MU",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/MU",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -20.3,
+        "lon": 57.6
+      }
+    ],
+    "MX": [
+      {
+        "title": "Overview: MX",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/MX",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 23.6,
+        "lon": -102.6
+      }
+    ],
+    "MD": [
+      {
+        "title": "Overview: MD",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/MD",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 47.4,
+        "lon": 28.4
+      }
+    ],
+    "MN": [
+      {
+        "title": "Overview: MN",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/MN",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 46.9,
+        "lon": 103.8
+      }
+    ],
+    "ME": [
+      {
+        "title": "Overview: ME",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/ME",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 42.7,
+        "lon": 19.4
+      }
+    ],
+    "MA": [
+      {
+        "title": "Overview: MA",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/MA",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 31.8,
+        "lon": -7.1
+      }
+    ],
+    "MZ": [
+      {
+        "title": "Overview: MZ",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/MZ",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -18.7,
+        "lon": 35.5
+      }
+    ],
+    "NA": [
+      {
+        "title": "Overview: NA",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/NA",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -22.9,
+        "lon": 18.6
+      }
+    ],
+    "NP": [
+      {
+        "title": "Overview: NP",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/NP",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 28.4,
+        "lon": 84.1
+      }
+    ],
+    "NL": [
+      {
+        "title": "Overview: NL",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/NL",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 52.1,
+        "lon": 5.3
+      }
+    ],
+    "NZ": [
+      {
+        "title": "Overview: NZ",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/NZ",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -40.9,
+        "lon": 174.9
+      }
+    ],
+    "NI": [
+      {
+        "title": "Overview: NI",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/NI",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 12.9,
+        "lon": -85.2
+      }
+    ],
+    "NE": [
+      {
+        "title": "Overview: NE",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/NE",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 17.6,
+        "lon": 8.1
+      }
+    ],
+    "NG": [
+      {
+        "title": "Overview: NG",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/NG",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 9.1,
+        "lon": 8.7
+      }
+    ],
+    "KP": [
+      {
+        "title": "Overview: KP",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/KP",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 40.3,
+        "lon": 127.5
+      }
+    ],
+    "MK": [
+      {
+        "title": "Overview: MK",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/MK",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 41.6,
+        "lon": 21.7
+      }
+    ],
+    "NO": [
+      {
+        "title": "Overview: NO",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/NO",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 60.5,
+        "lon": 8.5
+      }
+    ],
+    "OM": [
+      {
+        "title": "Overview: OM",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/OM",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 21.5,
+        "lon": 55.9
+      }
+    ],
+    "PK": [
+      {
+        "title": "Overview: PK",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/PK",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 30.4,
+        "lon": 69.3
+      }
+    ],
+    "PS": [
+      {
+        "title": "Overview: PS",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/PS",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 31.9,
+        "lon": 35.2
+      }
+    ],
+    "PA": [
+      {
+        "title": "Overview: PA",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/PA",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 8.5,
+        "lon": -80.0
+      }
+    ],
+    "PG": [
+      {
+        "title": "Overview: PG",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/PG",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -6.3,
+        "lon": 143.9
+      }
+    ],
+    "PY": [
+      {
+        "title": "Overview: PY",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/PY",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -23.4,
+        "lon": -58.4
+      }
+    ],
+    "PE": [
+      {
+        "title": "Overview: PE",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/PE",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -9.2,
+        "lon": -75.0
+      }
+    ],
+    "PH": [
+      {
+        "title": "Overview: PH",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/PH",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 12.9,
+        "lon": 121.8
+      }
+    ],
+    "PL": [
+      {
+        "title": "Overview: PL",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/PL",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 51.9,
+        "lon": 19.1
+      }
+    ],
+    "PT": [
+      {
+        "title": "Overview: PT",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/PT",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 39.4,
+        "lon": -8.2
+      }
+    ],
+    "PR": [
+      {
+        "title": "Overview: PR",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/PR",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 18.2,
+        "lon": -66.6
+      }
+    ],
+    "QA": [
+      {
+        "title": "Overview: QA",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/QA",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 25.3,
+        "lon": 51.2
+      }
+    ],
+    "RO": [
+      {
+        "title": "Overview: RO",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/RO",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 46.0,
+        "lon": 25.0
+      }
+    ],
+    "RU": [
+      {
+        "title": "Overview: RU",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/RU",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 61.5,
+        "lon": 105.3
+      }
+    ],
+    "RW": [
+      {
+        "title": "Overview: RW",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/RW",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -2.0,
+        "lon": 29.9
+      }
+    ],
+    "SA": [
+      {
+        "title": "Overview: SA",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/SA",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 24.0,
+        "lon": 45.0
+      }
+    ],
+    "SN": [
+      {
+        "title": "Overview: SN",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/SN",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 14.5,
+        "lon": -14.5
+      }
+    ],
+    "RS": [
+      {
+        "title": "Overview: RS",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/RS",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 44.0,
+        "lon": 21.0
+      }
+    ],
+    "SG": [
+      {
+        "title": "Overview: SG",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/SG",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 1.4,
+        "lon": 103.8
+      }
+    ],
+    "SK": [
+      {
+        "title": "Overview: SK",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/SK",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 48.7,
+        "lon": 19.7
+      }
+    ],
+    "SI": [
+      {
+        "title": "Overview: SI",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/SI",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 46.2,
+        "lon": 14.8
+      }
+    ],
+    "SO": [
+      {
+        "title": "Overview: SO",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/SO",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 6.0,
+        "lon": 48.0
+      }
+    ],
+    "ZA": [
+      {
+        "title": "Overview: ZA",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/ZA",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -29.0,
+        "lon": 24.0
+      }
+    ],
+    "KR": [
+      {
+        "title": "Overview: KR",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/KR",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 35.9,
+        "lon": 127.8
+      }
+    ],
+    "SS": [
+      {
+        "title": "Overview: SS",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/SS",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 7.0,
+        "lon": 30.0
+      }
+    ],
+    "ES": [
+      {
+        "title": "Overview: ES",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/ES",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 40.5,
+        "lon": -3.7
+      }
+    ],
+    "LK": [
+      {
+        "title": "Overview: LK",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/LK",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 7.9,
+        "lon": 80.8
+      }
+    ],
+    "SD": [
+      {
+        "title": "Overview: SD",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/SD",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 12.9,
+        "lon": 30.2
+      }
+    ],
+    "SR": [
+      {
+        "title": "Overview: SR",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/SR",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 4.0,
+        "lon": -56.0
+      }
+    ],
+    "SZ": [
+      {
+        "title": "Overview: SZ",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/SZ",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -26.5,
+        "lon": 31.5
+      }
+    ],
+    "SE": [
+      {
+        "title": "Overview: SE",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/SE",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 62.2,
+        "lon": 17.6
+      }
+    ],
+    "CH": [
+      {
+        "title": "Overview: CH",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/CH",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 46.8,
+        "lon": 8.2
+      }
+    ],
+    "SY": [
+      {
+        "title": "Overview: SY",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/SY",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 35.0,
+        "lon": 38.5
+      }
+    ],
+    "TW": [
+      {
+        "title": "Overview: TW",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/TW",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 23.7,
+        "lon": 121.0
+      }
+    ],
+    "TJ": [
+      {
+        "title": "Overview: TJ",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/TJ",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 38.9,
+        "lon": 71.3
+      }
+    ],
+    "TZ": [
+      {
+        "title": "Overview: TZ",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/TZ",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -6.4,
+        "lon": 34.9
+      }
+    ],
+    "TH": [
+      {
+        "title": "Overview: TH",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/TH",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 15.9,
+        "lon": 100.9
+      }
+    ],
+    "TL": [
+      {
+        "title": "Overview: TL",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/TL",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -8.8,
+        "lon": 125.7
+      }
+    ],
+    "TG": [
+      {
+        "title": "Overview: TG",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/TG",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 8.6,
+        "lon": 0.8
+      }
+    ],
+    "TN": [
+      {
+        "title": "Overview: TN",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/TN",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 34.0,
+        "lon": 9.5
+      }
+    ],
+    "TR": [
+      {
+        "title": "Overview: TR",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/TR",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 38.9,
+        "lon": 35.2
+      }
+    ],
+    "TM": [
+      {
+        "title": "Overview: TM",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/TM",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 39.0,
+        "lon": 59.6
+      }
+    ],
+    "UG": [
+      {
+        "title": "Overview: UG",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/UG",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 1.4,
+        "lon": 32.3
+      }
+    ],
+    "AE": [
+      {
+        "title": "Overview: AE",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/AE",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 24.0,
+        "lon": 54.0
+      }
+    ],
+    "UY": [
+      {
+        "title": "Overview: UY",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/UY",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -32.5,
+        "lon": -55.8
+      }
+    ],
+    "UZ": [
+      {
+        "title": "Overview: UZ",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/UZ",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 41.4,
+        "lon": 64.6
+      }
+    ],
+    "VE": [
+      {
+        "title": "Overview: VE",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/VE",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 6.4,
+        "lon": -66.6
+      }
+    ],
+    "VN": [
+      {
+        "title": "Overview: VN",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/VN",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 14.1,
+        "lon": 108.3
+      }
+    ],
+    "YE": [
+      {
+        "title": "Overview: YE",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/YE",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": 15.6,
+        "lon": 48.5
+      }
+    ],
+    "ZM": [
+      {
+        "title": "Overview: ZM",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/ZM",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -13.1,
+        "lon": 27.8
+      }
+    ],
+    "ZW": [
+      {
+        "title": "Overview: ZW",
+        "summary": "General overview and key facts. Replace with real headlines by editing data/country_news/seed.json or use Admin → Seed.",
+        "source_url": "https://en.wikipedia.org/wiki/ZW",
+        "date": "2026-03-06",
+        "source": "Seed",
+        "topic": "geopolitics",
+        "lat": -19.0,
+        "lon": 29.2
+      }
+    ]
+  }
+}

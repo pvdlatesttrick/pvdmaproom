@@ -1188,9 +1188,14 @@ async function openCountryPanel(countryName, mapKey) {
   graphicDetailList.innerHTML = "";
   allSourcesListEl.innerHTML = "";
   storyListEl.innerHTML = "";
-  filterPinsForCountry(countryName);   sidePanel.classList.add("open");
+  filterPinsForCountry(countryName);
+  sidePanel.classList.add("open");
   sidePanel.dataset.currentCountry = "";
   sidePanel.dataset.panelMapKey = mapKey || "";
+  Object.keys(mapContexts).forEach((k) => {
+    const ctx = mapContexts[k];
+    if (ctx && ctx.countryDetailLayer) ctx.countryDetailLayer.clearLayers();
+  });
 
   try {
     const params = new URLSearchParams({ name: countryName });
@@ -1277,10 +1282,24 @@ async function openCountryPanel(countryName, mapKey) {
     const allSourceStories = payload.all_source_stories || [];
     allSourcesListEl.innerHTML = renderCoverageWithLocationSections(
       allSourceStories,
-      "No source coverage matched this country yet."
+      "No headlines yet for this country. Edit data/country_news/seed.json or run the ingest pipeline; you can also use Admin → Seed to manage seed data."
     );
 
     const recentStories = payload.recent_stories || [];
+    ensureMapContext(mapKey);
+    const ctx = mapContexts[mapKey];
+    if (ctx && ctx.countryDetailLayer) {
+      ctx.countryDetailLayer.clearLayers();
+      recentStories.forEach((s) => {
+        if (typeof s.lat === "number" && typeof s.lon === "number") {
+          const topic = s.topic || "geopolitics";
+          let icon = topic === "sports" ? teamOrSportMarkerIcon(s) : (sourceIcons[String(s.source || "").toLowerCase()] || defaultSourceIcon);
+          const marker = createStoryMarker(s.lat, s.lon, icon);
+          marker.bindPopup(popupHtml(s, allCountryMajorEvents));
+          ctx.countryDetailLayer.addLayer(marker);
+        }
+      });
+    }
     const aiSummarySection = document.getElementById("country-ai-summary-section");
     if (mapKey === "conflicts") {
       if (conflictCasualtiesWrap && payload.conflict_casualties) {
@@ -1295,7 +1314,12 @@ async function openCountryPanel(countryName, mapKey) {
       if (allSourcesHeading) allSourcesHeading.textContent = "Conflict & military news";
       if (recentUpdatesHeading) recentUpdatesHeading.style.display = "none";
       const conflictStories = (allSourceStories.length ? allSourceStories : recentStories).filter((s) => (s.topic || "geopolitics") === "conflicts");
-      storyListEl.innerHTML = renderCoverageWithLocationSections(conflictStories, "No conflict or military news for this country yet.");
+      const fallbackStories = (allSourceStories.length ? allSourceStories : recentStories);
+      if (conflictStories.length > 0) {
+        storyListEl.innerHTML = renderCoverageWithLocationSections(conflictStories, "");
+      } else {
+        storyListEl.innerHTML = "<p class=\"muted country-news-empty-hint\">No conflict-specific headlines for this country. Showing general overview.</p>" + renderCoverageWithLocationSections(fallbackStories, "");
+      }
       allSourcesListEl.innerHTML = "";
     } else if (mapKey === "economics") {
       if (factsWrap) factsWrap.style.display = "block";
@@ -1304,8 +1328,15 @@ async function openCountryPanel(countryName, mapKey) {
       if (allSourcesHeading) allSourcesHeading.textContent = "Economic coverage";
       if (recentUpdatesHeading) { recentUpdatesHeading.style.display = ""; recentUpdatesHeading.textContent = "Recent mapped updates"; }
       const economicsStories = (allSourceStories.length ? allSourceStories : recentStories).filter((s) => (s.topic || "geopolitics") === "economics");
-      allSourcesListEl.innerHTML = renderCoverageWithLocationSections(economicsStories, "No economic coverage for this country yet.");
-      storyListEl.innerHTML = renderCoverageWithLocationSections(economicsStories, "No recent mapped stories for this country yet.");
+      const economicsFallback = (allSourceStories.length ? allSourceStories : recentStories);
+      const economicsStories = economicsFallback.filter((s) => (s.topic || "geopolitics") === "economics");
+      if (economicsStories.length > 0) {
+        allSourcesListEl.innerHTML = renderCoverageWithLocationSections(economicsStories, "");
+        storyListEl.innerHTML = renderCoverageWithLocationSections(economicsStories, "");
+      } else {
+        allSourcesListEl.innerHTML = "<p class=\"muted country-news-empty-hint\">No economic-specific headlines. Showing general overview.</p>" + renderCoverageWithLocationSections(economicsFallback, "");
+        storyListEl.innerHTML = allSourcesListEl.innerHTML;
+      }
     } else if (mapKey === "sports") {
       if (sportsLeaguesWrap && (payload.top_sports_leagues || []).length > 0) {
         sportsLeaguesWrap.style.display = "block";
@@ -1318,16 +1349,28 @@ async function openCountryPanel(countryName, mapKey) {
       if (allSourcesHeading) allSourcesHeading.textContent = "Sports coverage";
       if (recentUpdatesHeading) recentUpdatesHeading.style.display = "none";
       const sportsStories = (allSourceStories.length ? allSourceStories : recentStories).filter((s) => (s.topic || "geopolitics") === "sports");
-      storyListEl.innerHTML = renderCoverageWithLocationSections(sportsStories, "No sports coverage for this country yet.");
+      const sportsFallback = (allSourceStories.length ? allSourceStories : recentStories);
+      if (sportsStories.length > 0) {
+        storyListEl.innerHTML = renderCoverageWithLocationSections(sportsStories, "");
+      } else {
+        storyListEl.innerHTML = "<p class=\"muted country-news-empty-hint\">No sports-specific headlines for this country. Showing general overview.</p>" + renderCoverageWithLocationSections(sportsFallback, "");
+      }
       allSourcesListEl.innerHTML = "";
     } else {
       if (factsWrap) factsWrap.style.display = "block";
       if (aiSummarySection) aiSummarySection.style.display = "block";
       if (allSourcesHeading) allSourcesHeading.textContent = "Geopolitics coverage";
       if (recentUpdatesHeading) { recentUpdatesHeading.style.display = ""; recentUpdatesHeading.textContent = "Recent mapped updates"; }
-      const geopoliticsStories = (allSourceStories.length ? allSourceStories : recentStories).filter((s) => (s.topic || "geopolitics") === "geopolitics");
-      allSourcesListEl.innerHTML = renderCoverageWithLocationSections(geopoliticsStories, "No geopolitics coverage for this country yet.");
-      storyListEl.innerHTML = renderCoverageWithLocationSections(geopoliticsStories, "No recent mapped stories for this country yet.");
+      const geopoliticsFallback = (allSourceStories.length ? allSourceStories : recentStories);
+      const geopoliticsStories = geopoliticsFallback.filter((s) => (s.topic || "geopolitics") === "geopolitics");
+      if (geopoliticsStories.length > 0) {
+        allSourcesListEl.innerHTML = renderCoverageWithLocationSections(geopoliticsStories, "");
+        storyListEl.innerHTML = renderCoverageWithLocationSections(geopoliticsStories, "");
+      } else {
+        const hint = "<p class=\"muted country-news-empty-hint\">No geopolitics-specific headlines. Showing general overview.</p>";
+        allSourcesListEl.innerHTML = hint + renderCoverageWithLocationSections(geopoliticsFallback, "");
+        storyListEl.innerHTML = allSourcesListEl.innerHTML;
+      }
     }
     if (isHistoricalYear(selectedYear)) {
       if (recentUpdatesHeading) recentUpdatesHeading.style.display = "none";
@@ -1342,7 +1385,7 @@ async function openCountryPanel(countryName, mapKey) {
       }, 150);
     }
   } catch (error) {
-    factsEl.innerHTML = "Failed to load country details.";
+    factsEl.innerHTML = "Failed to load country details. Check your connection or try again. You can add seed items in <code>data/country_news/seed.json</code> (see Admin → Seed) so every country has at least one item.";
     console.error("Country panel load failed:", error);
   }
 }
@@ -1615,6 +1658,100 @@ async function refreshStories(opts) {
     if (showOverlay && overlay) overlay.classList.add("hidden");
   }
 }
+/** Physical reference layer: style by feature type (Natural Earth–style data). */
+function physicalFeatureStyle(featureType) {
+  const t = (featureType || "").toLowerCase();
+  if (t === "sea" || t === "gulf" || t === "bay" || t === "ocean") {
+    return { color: "#1e88e5", weight: 1, fillColor: "#42a5f5", fillOpacity: 0.12, opacity: 0.7 };
+  }
+  if (t === "lake") {
+    return { color: "#1976d2", weight: 1, fillColor: "#64b5f6", fillOpacity: 0.2, opacity: 0.8 };
+  }
+  if (t === "river" || t === "strait") {
+    return { color: "#1565c0", weight: 1.5, opacity: 0.75, fill: false };
+  }
+  if (t === "mountain" || t === "plateau") {
+    return { color: "#5d4037", weight: 2, dashArray: "4 3", opacity: 0.8, fill: false };
+  }
+  return { color: "#546e7a", weight: 1, fillOpacity: 0.1, opacity: 0.6 };
+}
+
+/** Compute label position: centroid for polygons, midpoint for lines. */
+function getPhysicalLabelLatLng(feature) {
+  const geom = feature.geometry;
+  if (!geom || !geom.coordinates) return null;
+  const c = geom.coordinates;
+  if (geom.type === "Polygon" && c[0] && c[0].length) {
+    const ring = c[0];
+    let sumLat = 0, sumLon = 0, n = 0;
+    for (let i = 0; i < ring.length; i++) {
+      sumLon += ring[i][0];
+      sumLat += ring[i][1];
+      n++;
+    }
+    return n ? [ sumLat / n, sumLon / n ] : null;
+  }
+  if (geom.type === "MultiPolygon" && c[0] && c[0][0] && c[0][0].length) {
+    const ring = c[0][0];
+    let sumLat = 0, sumLon = 0, n = 0;
+    for (let i = 0; i < ring.length; i++) {
+      sumLon += ring[i][0];
+      sumLat += ring[i][1];
+      n++;
+    }
+    return n ? [ sumLat / n, sumLon / n ] : null;
+  }
+  if (geom.type === "LineString" && c.length) {
+    const i = Math.floor(c.length / 2);
+    return [ c[i][1], c[i][0] ];
+  }
+  if (geom.type === "MultiLineString" && c[0] && c[0].length) {
+    const line = c[0];
+    const i = Math.floor(line.length / 2);
+    return [ line[i][1], line[i][0] ];
+  }
+  return null;
+}
+
+/** Load physical features GeoJSON and add styled geometries + name labels to the layer group. */
+function loadPhysicalFeatures(layerGroup) {
+  if (!layerGroup) return;
+  fetch("/static/geo/physical_features.geojson")
+    .then((res) => res.ok ? res.json() : null)
+    .then((geojson) => {
+      if (!geojson || !geojson.features || !Array.isArray(geojson.features)) return;
+      const GeoJSON = MapLib.geoJSON || L.geoJSON;
+      geojson.features.forEach((feature) => {
+        const props = feature.properties || {};
+        const name = props.name || "";
+        const featureType = props.feature_type || "";
+        const style = physicalFeatureStyle(featureType);
+        const fc = { type: "FeatureCollection", features: [ feature ] };
+        GeoJSON(fc, {
+          style: style,
+          onEachFeature: function (f, layer) {
+            if (layer.bindTooltip && name) {
+              layer.bindTooltip(name, { permanent: false, direction: "center", className: "physical-tooltip" });
+            }
+          }
+        }).eachLayer((layer) => layerGroup.addLayer(layer));
+        const latLng = getPhysicalLabelLatLng(feature);
+        if (latLng && name) {
+          const labelIcon = L.divIcon({
+            className: "physical-feature-label-wrap",
+            html: "<span class=\"physical-feature-label\">" + (name || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") + "</span>",
+            iconSize: [ 120, 22 ],
+            iconAnchor: [ 60, 11 ]
+          });
+          const labelMarker = (MapLib.marker || L.marker)(latLng, { icon: labelIcon });
+          labelMarker._physicalLabel = true;
+          layerGroup.addLayer(labelMarker);
+        }
+      });
+    })
+    .catch((err) => console.warn("Physical features layer failed to load:", err));
+}
+
 function createOneMapContext(mapKey, existingMarkerLayer) {
   const mapId = MAP_DEFS[mapKey].mapId;
   const m = createMap(mapId);
@@ -1673,6 +1810,12 @@ function createOneMapContext(mapKey, existingMarkerLayer) {
     };
     conflictLegend.addTo(m);
   }
+  const physicalLayer = L.layerGroup();
+  physicalLayer.addTo(m);
+  overlays["Physical features"] = physicalLayer;
+  loadPhysicalFeatures(physicalLayer);
+  const countryDetailLayer = L.layerGroup();
+  countryDetailLayer.addTo(m);
   L.control.layers(baseLayers, Object.keys(overlays).length ? overlays : null, { position: "topright" }).addTo(m);
   if (!USE_GLOBE) L.control.scale({ imperial: true }).addTo(m);
 
@@ -1746,6 +1889,7 @@ function createOneMapContext(mapKey, existingMarkerLayer) {
   return {
     map: m,
     markerLayer: markerLayer,
+    countryDetailLayer: countryDetailLayer,
     countryLayer: null,
     countryLayerIndex: {},
     selectedCountryLayer: null,
@@ -1887,6 +2031,7 @@ function initYearSelector() {
       refreshStories({ showOverlay: true, limit: 150 }).then(() => {
         document.getElementById("country-side-panel").classList.remove("open");
         filterPinsForCountry(null);
+        Object.keys(mapContexts).forEach((k) => { if (mapContexts[k].countryDetailLayer) mapContexts[k].countryDetailLayer.clearLayers(); });
       });
       return;
     }
@@ -1897,6 +2042,7 @@ function initYearSelector() {
     refreshStories({ showOverlay: true, limit: 150 }).then(() => {
       document.getElementById("country-side-panel").classList.remove("open");
       filterPinsForCountry(null);
+      Object.keys(mapContexts).forEach((k) => { if (mapContexts[k].countryDetailLayer) mapContexts[k].countryDetailLayer.clearLayers(); });
     });
   }
   input.addEventListener("change", applyYear);
@@ -2071,6 +2217,7 @@ document.getElementById("country-search-input").addEventListener("keydown", (eve
 });
 document.getElementById("country-close-btn").addEventListener("click", () => {
   document.getElementById("country-side-panel").classList.remove("open");
+  Object.keys(mapContexts).forEach((k) => { if (mapContexts[k].countryDetailLayer) mapContexts[k].countryDetailLayer.clearLayers(); });
 });
 
 document.getElementById("country-ai-summary-btn").addEventListener("click", async () => {

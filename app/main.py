@@ -6,6 +6,7 @@ import os
 import threading
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request
 
@@ -278,5 +279,30 @@ def create_app() -> Flask:
                 "error": "AI summary unavailable. Set GROQ_API_KEY (free at console.groq.com) or OPENAI_API_KEY in your Render service Environment Variables."
             }), 503
         return jsonify({"summary": summary_text})
+
+    @app.get("/admin/seed")
+    def admin_seed():
+        """Admin view: instructions to seed or update country news without touching core code."""
+        return render_template("admin_seed.html")
+
+    @app.get("/admin/seed.json")
+    def admin_seed_download():
+        """Download current seed.json so you can edit and re-upload or replace in data/country_news/."""
+        from flask import send_file
+        root = Path(__file__).resolve().parent
+        path = root / "data" / "country_news" / "seed.json"
+        if not path.exists():
+            return jsonify({"error": "seed.json not found", "path": str(path)}), 404
+        return send_file(path, as_attachment=True, download_name="seed.json", mimetype="application/json")
+
+    @app.post("/admin/seed/invalidate")
+    def admin_seed_invalidate():
+        """Clear in-memory seed/centroid cache so the next request reloads seed.json (e.g. after you replace the file)."""
+        try:
+            from app.country_news import invalidate_cache
+            invalidate_cache()
+            return jsonify({"ok": True, "message": "Seed cache cleared. Next country load will use updated seed.json."})
+        except Exception as e:
+            return jsonify({"ok": False, "error": str(e)}), 500
 
     return app

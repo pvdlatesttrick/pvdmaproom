@@ -847,6 +847,33 @@ def get_country_detail(country_name: str, year: int | None = None) -> dict[str, 
         stories = [s for s in stories if (_story_year(s) or 0) <= year]
     for s in stories:
         s.pop("country", None)
+
+    # Merge seed/fill from data/country_news so every country has at least one item.
+    try:
+        from app.country_news import get_country_news, get_placeholder_story
+        from app.geo.location import _country_name_to_iso2
+        iso2 = _country_name_to_iso2(country_name)
+        if not iso2 and stories:
+            iso2 = (stories[0].get("country_code") or "").strip() or None
+        seed_items = get_country_news(country_name)
+        for item in seed_items:
+            if not any(
+                s.get("url") == item.get("url") and s.get("title") == item.get("title")
+                for s in stories
+            ):
+                stories.append(item)
+        if not stories:
+            stories.append(get_placeholder_story(country_name, iso2))
+    except Exception:
+        if not stories:
+            try:
+                from app.country_news import get_placeholder_story
+                from app.geo.location import _country_name_to_iso2
+                iso2 = _country_name_to_iso2(country_name)
+                stories.append(get_placeholder_story(country_name, iso2))
+            except Exception:
+                pass
+
     try:
         from app.ranking import score_story_pvd
         for s in stories:
