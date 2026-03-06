@@ -105,6 +105,11 @@ def create_app() -> Flask:
     def index():
         return render_template("index.html")
 
+    @app.get("/historical")
+    def historical():
+        """Historical Map view: borders and pins keyed by year; year/borders controls apply here only."""
+        return render_template("historical.html")
+
     @app.get("/api/stories/meta")
     def api_stories_meta():
         """Lightweight endpoint: count and last_updated only (<50ms). Use before fetching full stories."""

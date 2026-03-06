@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Historical Map</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="/static/map.css" />
+    <style>
+      .historical-header { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+      .historical-header .brand { font-weight: 700; }
+      .historical-header a { color: var(--live-text, #e5e7eb); text-decoration: underline; }
+      .historical-controls { display: flex; align-items: center; gap: 1rem; margin-left: auto; }
+      #historical-map { width: 100%; height: 100%; min-height: 70vh; }
+      .historical-summary-panel { padding: 0.75rem; background: var(--live-panel, #1f2937); border-radius: 6px; margin-top: 0.5rem; }
+      .historical-summary-panel h3 { margin: 0 0 0.5rem 0; font-size: 0.95rem; }
+      .historical-summary-panel p { margin: 0; font-size: 0.9rem; line-height: 1.4; color: var(--live-text, #e5e7eb); }
+      .historical-summary-placeholder { color: #9ca3af; font-style: italic; }
+    </style>
+  </head>
+  <body>
+    <div class="app-root">
+      <header class="top-bar">
+        <div class="historical-header">
+          <span class="brand">Historical Map</span>
+          <a href="/">← News Map</a>
+          <div class="historical-controls">
+            <div class="year-select-wrap" title="Select year for borders and pins">
+              <label for="historical-year-input" class="year-select-label">Year</label>
+              <input id="historical-year-input" class="year-select-input" type="number" min="-1000" max="2030" step="1" value="1989" placeholder="Year" aria-label="Year" />
+            </div>
+            <div class="border-year-wrap" title="Country borders for this year">
+              <label for="historical-borders-select" class="year-select-label">Borders</label>
+              <select id="historical-borders-select" class="year-select" aria-label="Border year">
+                <option value="1960">1960</option>
+                <option value="1989" selected>1989</option>
+                <option value="2000">2000</option>
+                <option value="2025">2025</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </header>
+      <div class="main-row">
+        <div class="map-shell">
+          <div id="historical-map" class="map-canvas"></div>
+        </div>
+        <aside id="historical-side-panel" class="side-panel open">
+          <div class="side-panel-inner">
+            <h2 id="historical-panel-title">Historical summary</h2>
+            <p class="muted">Select a year and borders above, then click a country or a pin on the map.</p>
+            <div id="historical-summary-block" class="historical-summary-panel" style="display:none;">
+              <h3 id="historical-summary-heading">Country · Year</h3>
+              <p id="historical-summary-text" class="historical-summary-placeholder">No selection yet.</p>
+              <button id="historical-ai-summary-btn" type="button" class="ai-summary-btn" style="margin-top:0.5rem;">Generate AI summary</button>
+              <div id="historical-ai-summary-result" class="ai-summary-result" aria-live="polite" style="margin-top:0.5rem;"></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="/static/historical-map.js"></script>
+  </body>
+</html>

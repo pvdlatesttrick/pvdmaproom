@@ -18,6 +18,7 @@
     <div class="app-root">
       <header class="top-bar">
         <span class="brand">News Map</span>
+        <a href="/historical" class="historical-map-link" style="margin-right:0.5rem;">Historical Map</a>
         <div class="top-search">
           <input id="country-search-input" class="search-input" type="text" placeholder="Search country (e.g. Kenya, India)" />
           <button id="country-search-btn" class="search-btn" type="button">Search</button>
@@ -35,12 +36,13 @@
             <button class="map-tab" data-map-key="sports" type="button" role="menuitem">Sports</button>
           </div>
         </div>
-        <div class="year-select-wrap" title="Select year for historical view (1000 BC to present)">
+        <!-- Year and Borders controls apply only on Historical Map (/historical) -->
+        <div class="year-select-wrap news-map-year-hidden" title="Year/Borders only on Historical Map" style="display:none;">
           <label for="year-select-input" class="year-select-label">Year</label>
           <input id="year-select-input" class="year-select-input" type="number" min="-1000" max="2030" step="1" placeholder="Current" aria-label="Year (negative for BC)" />
           <span id="year-select-bc" class="year-select-bc" aria-hidden="true"></span>
         </div>
-        <div class="border-year-wrap" title="Country borders for selected year (historical boundaries)">
+        <div class="border-year-wrap news-map-year-hidden" title="Borders only on Historical Map" style="display:none;">
           <label for="year-select" class="year-select-label">Borders</label>
           <select id="year-select" class="year-select" aria-label="Border year">
             <option value="1960">1960</option>
