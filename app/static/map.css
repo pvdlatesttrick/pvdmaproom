@@ -846,3 +846,16 @@ html, body {
 .leaflet-control-layers label {
   color: var(--live-text);
 }
+.leaflet-control-conflict-legend {
+  padding: 6px 10px;
+  font-size: 11px;
+  line-height: 1.4;
+  background: var(--live-panel);
+  border: 1px solid var(--live-border);
+  border-radius: 4px;
+  color: var(--live-text);
+}
+.leaflet-control-conflict-legend strong {
+  display: block;
+  margin-bottom: 4px;
+}

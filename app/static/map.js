@@ -204,6 +204,28 @@ const MAP_DEFS = {
   sports: { mapId: "map-sports", title: "Sports Map" }
 };
 
+/** Major current wars / high-intensity conflicts: capital-to-capital lines (UCDP/ACLED/Crisis Group). */
+const CONFLICTS = [
+  { name: "Russia–Ukraine War", partyA: "Russia", partyB: "Ukraine", coordsA: [55.7558, 37.6176], coordsB: [50.4501, 30.5234], startYear: 2014, intensity: "war", summary: "Large-scale interstate war following Russia's annexation of Crimea, dramatically escalated by the full-scale invasion in February 2022.", sourceUrl: "https://ucdp.uu.se/conflict/Ukraine-Russia" },
+  { name: "Israel–Hamas / Gaza War", partyA: "Israel", partyB: "Hamas (Gaza)", coordsA: [31.7683, 35.2137], coordsB: [31.5017, 34.4668], startYear: 2023, intensity: "war", summary: "War triggered by Hamas's 7 October 2023 attacks and Israel's subsequent large-scale military campaign in Gaza.", sourceUrl: "https://ucdp.uu.se/conflict/Israel-Palestine" },
+  { name: "Israel–Hezbollah Border Conflict", partyA: "Israel", partyB: "Hezbollah (Lebanon)", coordsA: [31.7683, 35.2137], coordsB: [33.8938, 35.5018], startYear: 2023, intensity: "high", summary: "Sustained cross-border clashes and exchanges of fire along the Israel–Lebanon frontier involving Hezbollah and Israeli forces.", sourceUrl: "https://acleddata.com/2024/01/12/lebanon-israel-border-violence/" },
+  { name: "Sudan Civil War", partyA: "Sudan Armed Forces", partyB: "Rapid Support Forces", coordsA: [15.5007, 32.5599], coordsB: [15.5007, 32.5599], startYear: 2023, intensity: "war", summary: "Civil war between Sudan's army and the RSF, producing mass displacement and intense urban and regional fighting.", sourceUrl: "https://www.crisisgroup.org/africa/horn-africa/sudan" },
+  { name: "Myanmar Civil War", partyA: "Myanmar Military Junta", partyB: "Resistance Forces and Ethnic Armed Organizations", coordsA: [19.7633, 96.0785], coordsB: [16.8409, 96.1735], startYear: 2021, intensity: "war", summary: "Nationwide civil war after the 2021 coup, with resistance forces and ethnic armed groups fighting the military junta.", sourceUrl: "https://acleddata.com/conflicts/myanmar/" },
+  { name: "Ethiopia – Amhara / Oromia Conflicts", partyA: "Ethiopian Federal Government", partyB: "Amhara and Oromia Armed Groups", coordsA: [9.03, 38.74], coordsB: [11.5936, 37.3908], startYear: 2023, intensity: "high", summary: "Renewed conflict after the Tigray war, with armed confrontations in Amhara and Oromia regions against the federal government.", sourceUrl: "https://www.crisisgroup.org/africa/horn-africa/ethiopia" },
+  { name: "Sahel Jihadist Insurgencies", partyA: "Mali / Burkina Faso / Niger Juntas", partyB: "Jihadist and other armed groups", coordsA: [12.6392, -8.0029], coordsB: [14.6937, -17.4441], startYear: 2012, intensity: "high", summary: "Regional insurgencies and counterinsurgency campaigns across the central Sahel involving jihadist groups and military juntas.", sourceUrl: "https://acleddata.com/conflicts/sahel/" },
+  { name: "Yemen Civil War", partyA: "Internationally Recognized Government / Coalition", partyB: "Houthi Movement", coordsA: [15.3694, 44.1910], coordsB: [12.7855, 45.0187], startYear: 2014, intensity: "war", summary: "Multi-sided war between the Houthi movement, government forces, and regional actors, with periodic escalation in the Red Sea.", sourceUrl: "https://ucdp.uu.se/conflict/Yemen" },
+  { name: "Haiti Armed Gang Conflict", partyA: "Haitian Government & Police", partyB: "Armed Gangs", coordsA: [18.5944, -72.3074], coordsB: [18.5944, -72.3074], startYear: 2018, intensity: "high", summary: "De facto urban war as heavily armed gangs challenge state authority and control large parts of Port-au-Prince.", sourceUrl: "https://acleddata.com/conflicts/haiti/" },
+  { name: "Colombia – ELN / FARC Dissidents", partyA: "Government of Colombia", partyB: "ELN and FARC Dissident Groups", coordsA: [4.7110, -74.0721], coordsB: [8.1250, -72.8060], startYear: 2016, intensity: "high", summary: "Continuing armed conflict with ELN and FARC dissident groups despite the 2016 peace accord.", sourceUrl: "https://ucdp.uu.se/country/70" }
+];
+
+function conflictLineStyle(intensity) {
+  switch (intensity) {
+    case "war": return { color: "#d73027", weight: 4, dashArray: null, opacity: 0.9 };
+    case "high": return { color: "#fc8d59", weight: 3, dashArray: "6 4", opacity: 0.8 };
+    default: return { color: "#fee090", weight: 2, dashArray: "4 4", opacity: 0.7 };
+  }
+}
+
 const TOPIC_LABELS = ["economics", "geopolitics", "conflicts", "sports"];
 const TOPIC_DEFINITIONS = {
   economics: "Macroeconomy, inflation, trade flows, markets, industry, business deals, economic policy that primarily affects money, jobs, trade, or growth.",
@@ -1634,6 +1656,22 @@ function createOneMapContext(mapKey, existingMarkerLayer) {
     fetch("/api/isw-frontlines").then((r) => r.ok ? r.json() : null).then(addIswGeoJson).catch(() => {});
     iswLinesLayer.addTo(m);
     overlays["ISW / Front lines"] = iswLinesLayer;
+    const conflictLinesLayer = L.layerGroup();
+    CONFLICTS.forEach(function (c) {
+      const style = conflictLineStyle(c.intensity);
+      const line = L.polyline([c.coordsA, c.coordsB], style).addTo(conflictLinesLayer);
+      const popupHtml = "<strong>" + (c.name || "") + "</strong><br><em>" + (c.partyA || "") + "</em> vs <em>" + (c.partyB || "") + "</em><br>Started: " + (c.startYear || "") + "<br>" + (c.summary || "") + "<br><a href=\"" + (c.sourceUrl || "#") + "\" target=\"_blank\" rel=\"noopener noreferrer\">Source</a>";
+      line.bindPopup(popupHtml);
+    });
+    conflictLinesLayer.addTo(m);
+    overlays["Conflict lines (war / high)"] = conflictLinesLayer;
+    const conflictLegend = L.control({ position: "bottomleft" });
+    conflictLegend.onAdd = function () {
+      const div = L.DomUtil.create("div", "leaflet-control leaflet-control-conflict-legend");
+      div.innerHTML = "<strong>Conflict lines</strong><br><span style=\"display:inline-block;width:12px;height:3px;background:#d73027;margin-right:4px;\"></span> War<br><span style=\"display:inline-block;width:12px;height:2px;background:#fc8d59;margin-right:4px;border-style:dashed;border-width:1px;\"></span> High-intensity";
+      return div;
+    };
+    conflictLegend.addTo(m);
   }
   L.control.layers(baseLayers, Object.keys(overlays).length ? overlays : null, { position: "topright" }).addTo(m);
   if (!USE_GLOBE) L.control.scale({ imperial: true }).addTo(m);
@@ -2089,12 +2127,9 @@ document.addEventListener("click", async (e) => {
     .then((r) => r.json())
     .then((meta) => {
       const count = meta.count != null ? meta.count : 0;
-      if (count === 0) {
-        if (overlay) {
-          overlay.classList.remove("hidden");
-          overlay.textContent = "Ingest in progress, check back in 2 minutes";
-        }
-        return;
+      if (count === 0 && overlay) {
+        overlay.classList.remove("hidden");
+        overlay.textContent = "Ingest in progress, check back in 2 minutes";
       }
       refreshStories({ showOverlay: false, limit: 50 });
     })
