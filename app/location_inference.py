@@ -40,7 +40,8 @@ def _call_llm(title: str, summary: str) -> list[str]:
         return []
     user_content = USER_PROMPT_TEMPLATE.format(
         title=(title or "")[:500],
-        summary=(summary or "")[:800],
+        summary=(summary or "")[:800]
+        )
             model = CLASSIFIER_MODEL
     try:
         resp = client.chat.completions.create(
