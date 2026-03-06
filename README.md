@@ -62,6 +62,10 @@ To get a **public URL** that works from anywhere (not just localhost):
 6. **Stories load automatically**: ingest runs in the background at startup and **every 45 minutes** via APScheduler. On Render’s free tier the disk is **ephemeral** (DB is wiped on redeploy). For persistent data across deploys, add a [Render Disk](https://render.com/docs/disks) (paid) and set `DB_PATH` to a path on that disk, or migrate to a hosted Postgres (e.g. Neon, Supabase) with SQLAlchemy. To trigger ingest manually: **POST** `/api/ingest` (async); poll **GET** `/api/ingest-status` for progress.  
    **Optional**: set `NYT_API_KEY` in Render’s Environment to pull **NYT Top Stories (World)** from the NYT API. Without it, NYT still appears via RSS.
 
+7. **Persistent storage**: Render's free tier uses an ephemeral disk — redeploys wipe the DB. Add a [Render Disk](https://render.com/docs/disks) and set `DB_PATH` to its path, or use hosted Postgres with a fork that supports `DATABASE_URL`.
+
+8. **Pins on the map**: Set **OPENAI_API_KEY** or **GROQ_API_KEY** (e.g. free at [console.groq.com](https://console.groq.com)) in Render Environment so location inference runs; otherwise many stories get no coordinates.
+
 ### Option B: ngrok (quick tunnel from your machine)
 
 1. Run the app locally: `docker compose up` (or `gunicorn -b 0.0.0.0:8000 "app.main:create_app()"`).

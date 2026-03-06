@@ -4,9 +4,14 @@ from __future__ import annotations
 import logging
 import os
 import threading
+import time
 from datetime import datetime, timezone
 
 from flask import Flask, jsonify, render_template, request
+
+# In-memory cache for /api/stories to avoid repeated DB hits (60s TTL).
+_stories_cache: dict = {"stories": None, "ts": 0.0, "limit": None, "year": None}
+STORIES_CACHE_TTL = 60
 
 from app.ai_summary import summarize_country, summarize_story
 from app.chat import chat as chat_reply
@@ -17,8 +22,16 @@ from app.isw_frontlines import ISW_FRONTLINES_GEOJSON
 # Optional features: log at startup so deploy logs show what's available.
 def _log_optional_features() -> None:
     log = logging.getLogger(__name__)
-    if not os.environ.get("OPENAI_API_KEY", "").strip():
-        log.warning("OPENAI_API_KEY not set: AI summary, AI titles, and PVD chat will return 503.")
+    has_openai = bool(os.environ.get("OPENAI_API_KEY", "").strip())
+    has_groq = bool(os.environ.get("GROQ_API_KEY", "").strip())
+    if not has_openai and not has_groq:
+        log.warning(
+            "Neither OPENAI_API_KEY nor GROQ_API_KEY is set. Location inference will not run: "
+            "stories that cannot be geocoded will get no pins. Set one of these in Render Environment "
+            "(e.g. GROQ_API_KEY from console.groq.com) so pins appear on the map."
+        )
+    elif not has_openai:
+        log.info("OPENAI_API_KEY not set; using GROQ for AI summary, titles, chat, and location inference.")
     if not os.environ.get("NYT_API_KEY", "").strip():
         log.info("NYT_API_KEY not set: NYT Top Stories API disabled; RSS still used for NYT.")
 
@@ -92,10 +105,20 @@ def create_app() -> Flask:
     def index():
         return render_template("index.html")
 
+    @app.get("/api/stories/meta")
+    def api_stories_meta():
+        """Lightweight endpoint: count and last_updated only (<50ms). Use before fetching full stories."""
+        with _ingest_lock:
+            last_completed = _ingest_state.get("last_completed_at")
+            count = _ingest_state.get("last_mapped_count")
+        if count is None:
+            count = get_total_mapped_story_count()
+        return jsonify({"count": count, "last_updated": last_completed})
+
     @app.get("/api/stories")
     def api_stories():
         limit_param = request.args.get("limit", "").strip()
-        limit = 150
+        limit = 50
         if limit_param:
             try:
                 limit = max(1, min(500, int(limit_param)))
@@ -108,6 +131,14 @@ def create_app() -> Flask:
                 year = int(year_param)
             except ValueError:
                 pass
+        now = time.time()
+        if (
+            _stories_cache["stories"] is not None
+            and _stories_cache["limit"] == limit
+            and _stories_cache["year"] == year
+            and (now - _stories_cache["ts"]) < STORIES_CACHE_TTL
+        ):
+            return jsonify(_stories_cache["stories"])
         stories = get_stories(limit=limit, year=year)
         if year is not None:
             from app.historical_events import fetch_historical_events
@@ -120,6 +151,10 @@ def create_app() -> Flask:
                         seen_urls.add(h.get("url"))
             except Exception as e:
                 logging.getLogger(__name__).warning("Historical events fetch failed: %s", e)
+        _stories_cache["stories"] = stories
+        _stories_cache["ts"] = now
+        _stories_cache["limit"] = limit
+        _stories_cache["year"] = year
         return jsonify(stories)
 
     @app.get("/api/status")

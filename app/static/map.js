@@ -1521,12 +1521,15 @@ function addStoryToMap(story, countryMajorEvents) {
   layerGroup.addLayer(marker);
 }
 
-function filterPinsForCountry(countryName) {   Object.keys(layersByMapKey).forEach((topic) => layersByMapKey[topic].clearLayers());   const stories = countryName ? allVisibleStories.filter((s) => (s.country || "").toLowerCase() === countryName.toLowerCase()) : allVisibleStories;   const sportsSpread = spreadSportsPins(stories.filter((s) => (s.topic || "geopolitics") === "sports"));   stories.forEach((s) => {     if ((s.topic || "geopolitics") !== "sports") addStoryToMap(s, allCountryMajorEvents);   });   sportsSpread.forEach((s) => addStoryToMap(s, allCountryMajorEvents)); } async function refreshStories() {
+function filterPinsForCountry(countryName) {   Object.keys(layersByMapKey).forEach((topic) => layersByMapKey[topic].clearLayers());   const stories = countryName ? allVisibleStories.filter((s) => (s.country || "").toLowerCase() === countryName.toLowerCase()) : allVisibleStories;   const sportsSpread = spreadSportsPins(stories.filter((s) => (s.topic || "geopolitics") === "sports"));   stories.forEach((s) => {     if ((s.topic || "geopolitics") !== "sports") addStoryToMap(s, allCountryMajorEvents);   });   sportsSpread.forEach((s) => addStoryToMap(s, allCountryMajorEvents)); }
+async function refreshStories(opts) {
+  const showOverlay = opts && opts.showOverlay === true;
+  const limit = (opts && opts.limit != null) ? opts.limit : 50;
   const overlay = document.getElementById("map-loading-overlay");
-  if (overlay) overlay.classList.remove("hidden");
+  if (showOverlay && overlay) overlay.classList.remove("hidden");
   try {
     const params = new URLSearchParams();
-    params.set("limit", "150");
+    params.set("limit", String(limit));
     if (selectedYear !== null && selectedYear !== undefined) {
       params.set("year", String(selectedYear));
     }
@@ -1579,7 +1582,7 @@ function filterPinsForCountry(countryName) {   Object.keys(layersByMapKey).forEa
   } catch (error) {
     console.error("Failed to refresh stories:", error);
   } finally {
-    if (overlay) overlay.classList.add("hidden");
+    if (showOverlay && overlay) overlay.classList.add("hidden");
   }
 }
 function createOneMapContext(mapKey, existingMarkerLayer) {
@@ -1835,7 +1838,7 @@ function initYearSelector() {
     if (raw === "") {
       selectedYear = null;
       if (bcSpan) bcSpan.textContent = "";
-      refreshStories().then(() => {
+      refreshStories({ showOverlay: true, limit: 150 }).then(() => {
         document.getElementById("country-side-panel").classList.remove("open");
         filterPinsForCountry(null);
       });
@@ -1845,7 +1848,7 @@ function initYearSelector() {
     if (isNaN(n) || n < -1000 || n > 2030) return;
     selectedYear = n;
     if (bcSpan) bcSpan.textContent = n < 1 ? "BC" : "";
-    refreshStories().then(() => {
+    refreshStories({ showOverlay: true, limit: 150 }).then(() => {
       document.getElementById("country-side-panel").classList.remove("open");
       filterPinsForCountry(null);
     });
@@ -2071,5 +2074,22 @@ document.addEventListener("click", async (e) => {
   }
 });
 
-refreshStories();
-setInterval(refreshStories, 300000);
+(function initStoriesLoad() {
+  const overlay = document.getElementById("map-loading-overlay");
+  if (overlay) overlay.classList.add("hidden");
+  fetch("/api/stories/meta")
+    .then((r) => r.json())
+    .then((meta) => {
+      const count = meta.count != null ? meta.count : 0;
+      if (count === 0) {
+        if (overlay) {
+          overlay.classList.remove("hidden");
+          overlay.textContent = "Ingest in progress, check back in 2 minutes";
+        }
+        return;
+      }
+      refreshStories({ showOverlay: false, limit: 50 });
+    })
+    .catch(() => refreshStories({ showOverlay: false, limit: 50 }));
+})();
+setInterval(() => refreshStories({ showOverlay: true, limit: 150 }), 300000);
