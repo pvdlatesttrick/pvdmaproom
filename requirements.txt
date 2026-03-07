@@ -1,9 +1,0 @@
-APScheduler>=3.10.0
-Flask
-feedparser
-geopy
-gunicorn
-openai
-pycountry
-python-dotenv
-

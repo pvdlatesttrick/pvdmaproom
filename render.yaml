@@ -1,9 +1,0 @@
-# Render.com blueprint for public deployment
-# On free tier, DB_PATH is not set — app uses data/app.db in the repo root (ephemeral).
-# For persistent DB, add a Render Disk and set DB_PATH in Dashboard → Environment to the disk path (e.g. /data/app.db).
-services:
-  - type: web
-    name: pvdmaproom
-    runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn -b 0.0.0.0:$PORT --timeout 120 "app.main:create_app()"
